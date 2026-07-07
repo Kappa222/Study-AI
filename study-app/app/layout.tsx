@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Study AI",
-  description: "Tanulj hatékonyabban mesterséges intelligencia segítségével. AI chat, kvízek, tananyag kezelés és haladás követés egy helyen.",
+  title: "Cognimo",
+  description: "Tanulj hatékonyabban mesterséges intelligencia segítségével. AI chat, kvízek, tananyag kezelés és haladás követés egy helyen — Cognimo.",
 };
 
 export default function RootLayout({

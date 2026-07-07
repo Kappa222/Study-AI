@@ -4,7 +4,7 @@
 
 <!-- AI: Git commit cadence — commit after every completed sub-task. Each commit should be a self-contained, meaningful unit. -->
 
-# Study AI
+# Cognimo
 
 Hungarian-language AI-powered learning platform based on the **Inverted Teacher** method — you learn by teaching.
 
@@ -13,7 +13,7 @@ The AI plays two personas (**Leo** & **Mia** — identical behavior, only the na
 ## Tech Stack
 
 - **Framework:** Next.js 16
-- **Styling:** Tailwind v4 (violet accent, no external component libraries)
+- **Styling:** Tailwind v4 (violet accent `#7c3aed`, no external component libraries)
 - **AI:** Groq (llama-3.3-70b-versatile) via OpenAI-compatible SDK
 - **Database:** Supabase PostgreSQL with RLS on every table
 - **Auth:** Email + password with confirmation link (cookie-based sessions via `@supabase/ssr`)
@@ -26,32 +26,36 @@ The AI plays two personas (**Leo** & **Mia** — identical behavior, only the na
 | Accent color | Violet (#7c3aed) — minimal, clean, educational |
 | UI language | Hungarian throughout |
 | Auth flow | Signup → confirmation email → /setup-profile (username + AI persona) → /dashboard |
-| AI provider | Groq (free Llama 3.3 70B via OpenAI-compatible SDK) — swappable to GPT-4o |
+| Auth-aware header | Shows Belépés when logged out, ⚙️+Kijelentkezés when logged in; hidden on /login and /setup-profile |
+| AI provider | Groq (free Llama 3.3 70B via OpenAI-compatible SDK) — swappable to GPT-4o with fallback |
 | AI personas | Leo & Mia (identical, name only) — chosen on signup, changeable in /settings |
-| Subjects | Fixed set: Matematika, Történelem, Irodalom (global, read-only) |
+| Subjects | Fixed set: Matematika, Történelem, Irodalom (global, read-only, with logo colors) |
 | Topics | Per-user CRUD inside a subject |
 | Chat style | Streaming responses (real-time token output) |
 | Session storage | Cookies — so server-side code (proxy, API routes) can read auth state |
 | Learning flow | Structured: Exercises → Reverse Teaching → Quiz (one session, resumable) |
 | Exercise checkpoints | Saved after each exercise; quitting mid-exercise restarts it |
 | Progress UI | Horizontal roadmap with bubbles (completed / current / locked); tap any completed to redo |
+| Card style | `rounded-2xl border-zinc-200/60 bg-white shadow-sm` with hover lift |
+| Button style | `cursor-pointer` with hover lift (`-translate-y-0.5`) and click press (`scale-[0.98]`) |
+| Input style | `border-zinc-200 py-2.5` with accent focus ring |
 | Gamification | Planned: daily streaks, XP, per-topic stats |
 
 ## Database Schema
 
-9 tables + the `topics` table (10 total):
+10 tables:
 
 | Table | Key Relationships | Notes |
 |-------|-------------------|-------|
-| `profiles` | id → auth.users | Auto-created on signup via trigger |
+| `profiles` | id → auth.users | Auto-created on signup via trigger, stores `preferred_character_id` |
 | `subjects` | — | Global (3 seeded rows: Matematika, Történelem, Irodalom) |
 | `topics` | user_id → profiles, subject_id → subjects | Per-user CRUD |
-| `study_materials` | user_id → profiles, topic_id → topics | PDF or text input |
-| `characters` | — | Global (Leo & Mia seeded) |
-| `chat_sessions` | user_id → profiles, topic_id → topics, character_id → characters | Resumable sessions |
+| `study_materials` | user_id → profiles, topic_id → topics | PDF (Supabase Storage) or text input |
+| `characters` | — | Global (Leo & Mia seeded, Hungarian descriptions) |
+| `chat_sessions` | user_id → profiles, topic_id → topics, character_id → characters | Resumable with checkpoints |
 | `chat_messages` | session_id → chat_sessions | role check (user/assistant) |
 | `quiz_questions` | user_id → profiles, subject_id → subjects | AI-generated |
-| `quiz_attempts` | user_id → profiles | Score tracking |
+| `quiz_attempts` | user_id → profiles | Score tracking (needs `topic_id` migration) |
 | `progress_log` | user_id → profiles | Daily unique per user |
 
 All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `set_user_id()` function.
@@ -59,65 +63,129 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 ## Current State
 
 ### Done
-- Landing page — Hero, How it works, Features grid, CTA, Footer; Hungarian
-- Auth system — signup/login with email confirmation, proxy.ts guard, cookie-based sessions
-- Dashboard — 5 nav cards (Tárgyak, AI Chat, Tananyagok, Kvízek, Haladás)
-- Subjects — 3 global subjects, read-only cards (no add/edit/delete)
-- Topics — per-user CRUD (create, edit, delete, list) under each subject
-- Groq streaming API endpoint (`/api/chat`)
-- All DB schema written: 10 tables, RLS, triggers, seed data
-- Characters seeded: Leo & Mia
-- Study Materials API — GET, POST (text + PDF upload to Supabase Storage), DELETE
-- Materials page at `/topics/[topicId]/materials` with text paste + file upload tabs
-- Supabase Storage bucket `materials` with RLS policies
-- Topic detail page at `/topics/[topicId]` with Tanulj / Kvíz / Statisztika tabs
-- Persona selection — Leo/Mia picker on setup-profile + /settings page with profile editing
 
-### In Progress — Phase 2
-- AI Chat UI — three-phase learning session (exercises → reverse teaching → quiz)
-- Horizontal progress roadmap with checkpoint bubbles (tap any completed to redo)
-- Session resume: continue where left off
+**Foundation:**
+- Landing page with hero, how-it-works steps, features grid, CTA sections, footer
+- Auth system — signup/login with email confirmation, `proxy.ts` guard, cookie-based sessions
+- Auth callback handler at `/auth/callback`
+- 10-table Supabase schema with RLS, triggers, and seed data
+- Characters seeded: Leo & Mia (identical system prompts, Hungarian descriptions)
 
-### In Progress — Phase 3 (not started)
+**Login page:**
+- Split layout: dark brand panel (logo + tagline + decorative elements) on desktop, form on right
+- Tab toggle with sliding indicator (Belépés / Regisztráció)
+- Monochrome SVG icons for email, password, show/hide
+- Password reveal toggle
+- Banner-style error/success messages with icons
+- Mobile responsive — brand panel stacks above form
+
+**Subjects & Topics:**
+- 3 global subjects (Matematika, Történelem, Irodalom) with logo colors — clickable cards
+- Per-user topic CRUD (create, edit, delete, list) with inline edit form
+- ConfirmModal for delete confirmation (backdrop dismiss, focus rings, danger variant)
+
+**Study Materials:**
+- API: GET (list by topic), POST (text JSON or PDF FormData), DELETE (with storage cleanup)
+- Materials page at `/topics/[topicId]/materials` with text paste + PDF upload tabs
+- Expandable content viewer for text materials (max-h animation)
+- Success banner with start-learning CTA after upload
+
+**Topic Detail:**
+- Page at `/topics/[topicId]` with Tanulj / Kvíz / Statisztika tabs
+- Materials list, start-learning CTA (or add-materials prompt when empty)
+- Stat cards (session count, material count)
+
+**Dashboard:**
+- Continue-learning cards for in-progress sessions (with progress dots)
+- Empty state with CTA to subjects
+- Quick nav bar (Tárgyak, Tananyagok, Beállítások)
+- Stats footer (studied topics, completed quizzes)
+- Greeting with username
+
+**Persona Selection:**
+- Leo/Mia picker on `/setup-profile` page (first-login wizard)
+- Profile editing (username + persona change) on `/settings` page
+- Logout with confirmation modal
+
+**Global Header:**
+- Auth-aware: shows Belépés when logged out, ⚙️ settings + Kijelentkezés when logged in
+- Hidden on `/login` and `/setup-profile`
+- Kijelentkezés has confirmation modal
+
+**Site-wide style unification:**
+- All cards: `rounded-2xl border-zinc-200/60 bg-white shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900`
+- All inputs: `border-zinc-200 py-2.5` with accent focus ring
+- All buttons: `cursor-pointer` with hover lift `-translate-y-0.5`, click press `scale-[0.98]`, and shadow
+- Back buttons on all pages (← Vissza...)
+
+**Component:**
+- `ConfirmModal` — reusable modal with backdrop dismiss, focus rings, danger/default variants
+- `Header` — auth-aware global header
+
+### In Progress — Phase 2 Task 4 (AI Chat UI)
+
+- **4a:** Chat message component with streaming renderer, message history pagination
+- **4b:** Three-phase session manager (exercises → reverse teaching → quiz)
+- **4c:** Horizontal progress roadmap with checkpoint bubbles
+- **4d:** Session lifecycle (create, resume, redo, checkpoint save)
+- **4e:** AI context wiring (materials as context, persona selection, Groq → GPT-4o fallback)
+
+### Not Started — Phase 3 (Assessment)
+
 - Quiz generation from study materials
-- Quiz UI with instant feedback
+- Standalone quiz UI with instant feedback
 - Quiz history review
 
-### In Progress — Phase 4 (not started)
+### Not Started — Phase 4 (Tracking & Polish)
+
 - Progress dashboard with charts
 - Per-topic statistics
 - Gamification (daily streaks, XP)
-- Polish & responsiveness
+- Mobile responsiveness audit, error boundaries, loading skeletons, accessibility
 
-### Current Routes
+### Not Started — Phase 5 (Quality & Deploy)
+
+- End-to-end and component testing
+- Error monitoring
+- Performance audit
+- Production deploy
+
+## Current Routes
 
 | Route | Status | Description |
 |-------|--------|-------------|
 | `/` | ✅ | Landing page |
-| `/login` | ✅ | Login / Signup |
+| `/login` | ✅ | Login / Signup (split layout) |
 | `/auth/callback` | ✅ | Email confirmation handler |
 | `/setup-profile` | ✅ | Username + AI persona setup |
-| `/dashboard` | ✅ | Navigation hub |
-| `/api/chat` | ✅ | Groq streaming API |
-| `/subjects` | ⬜ | To be replaced with fixed subject picker |
-| `/subjects/[subjectId]/topics` | ❌ | Phase 2 — Topics CRUD |
-| `/topics/[topicId]` | ✅ | Phase 2 — Topic detail (Tanulj / Kvíz / Statisztika tabs) |
-| `/topics/[topicId]/materials` | ✅ | Phase 2 — Study materials (text + PDF upload) |
-| `/topics/[topicId]/chat` | ❌ | Phase 2 — Structured learning session with roadmap |
-| `/topics/[topicId]/quiz` | ❌ | Phase 3 — Quiz |
-| `/settings` | ✅ | Phase 2 — AI persona, profile settings |
-| `/progress` | ❌ | Phase 4 — Progress dashboard |
+| `/dashboard` | ✅ | Dashboard with continue-learning cards, quick nav, stats |
+| `/subjects` | ✅ | Fixed subject picker (3 cards) |
+| `/subjects/[id]` | ✅ | Subject detail with topic CRUD |
+| `/topics/[topicId]` | ✅ | Topic detail (Tanulj / Kvíz / Statisztika tabs) |
+| `/topics/[topicId]/materials` | ✅ | Study materials (text + PDF upload) |
+| `/topics/[topicId]/chat` | 📄 | Phase 2 — Structured learning session with roadmap |
+| `/topics/[topicId]/quiz` | ❌ | Phase 3 — Standalone quiz |
+| `/settings` | ✅ | Profile editing, persona change, logout |
+| `/api/chat` | ✅ | Groq streaming API (basic, needs session+topic context) |
+| `/api/materials` | ✅ | GET (list by topic) + POST (text JSON or PDF FormData) |
+| `/api/materials/[id]` | ✅ | DELETE material + storage file |
+| `/api/topics` | ✅ | GET (list by subject) + POST (create) + PUT (edit) + DELETE |
 
 ## Known Issues
 
-- Tanulj/Kvíz buttons on subject detail page are placeholders
-- No logout button on subjects/topics pages
+- Kvíz tab on topic detail page is a placeholder ("Hamarosan elérhető...")
+- Statisztika tab shows only basic counts (session count, material count)
+- Chat UI at `/topics/[topicId]/chat` does not exist yet
+- Quiz tables (`quiz_questions`, `quiz_attempts`) need `topic_id` column migration
+- No error boundaries — API failures show raw errors or silent fails
+- No loading skeletons — spinner-only loading states
 
 ## Migration History
 
 1. `migration_set_user_id_minimal.sql` — added trigger to auto-set user_id on subjects insert
 2. `migration_global_subjects.sql` — removed user_id, seeded 3 global subjects, updated RLS
-3. (Phase 2 setup) — ensured topics table, added topic_id to study_materials, added preferred_character_id to profiles
+3. Phase 2 setup — ensured topics table, added topic_id to study_materials, added preferred_character_id to profiles
+4. Leo/Mia descriptions localized to Hungarian; redundant characters removed
 
 ## Getting Started
 

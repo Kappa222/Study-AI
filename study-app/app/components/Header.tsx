@@ -17,20 +17,20 @@ export default function Header() {
     });
   }, []);
 
-  const hide = pathname === "/login" || pathname === "/setup-profile";
+  const hide = pathname === "/" || pathname === "/login" || pathname === "/setup-profile";
   if (hide) return null;
 
   const handleLogout = async () => {
     setShowLogout(false);
     await supabase.auth.signOut();
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   return (
     <>
       <header className="flex items-center justify-between border-b border-zinc-200/70 px-6 py-3 dark:border-zinc-800/70">
         <Link href="/" className="text-lg font-bold tracking-tight">
-          <span className="text-accent">Study</span> AI
+          <span className="text-accent">Cogni</span>mo
         </Link>
 
         {loggedIn ? (

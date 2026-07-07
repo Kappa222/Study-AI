@@ -1,5 +1,5 @@
 -- ============================================================
--- Study AI — Full Database Schema
+-- Cognimo — Full Database Schema
 -- Execute this in the Supabase SQL Editor (one time setup)
 -- ============================================================
 

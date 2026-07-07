@@ -145,7 +145,7 @@ export default function DashboardPage() {
       <header className="mb-12 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            <span className="text-accent">Study</span> AI
+            <span className="text-accent">Cogni</span>mo
           </h1>
           {username && (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">

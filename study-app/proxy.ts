@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (user && isAuthPage) {
+  if (user && (isAuthPage || request.nextUrl.pathname === "/")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -49,5 +49,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/setup-profile/:path*", "/subjects/:path*", "/topics/:path*", "/settings/:path*", "/login"],
+  matcher: ["/", "/dashboard/:path*", "/setup-profile/:path*", "/subjects/:path*", "/topics/:path*", "/settings/:path*", "/login"],
 };
