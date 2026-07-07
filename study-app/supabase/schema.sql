@@ -117,6 +117,7 @@ create table study_materials (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
   subject_id uuid not null references subjects(id) on delete cascade,
+  topic_id uuid references topics(id) on delete cascade,
   title text not null,
   content text,
   file_url text,
@@ -132,6 +133,7 @@ create policy "Users can CRUD their own study materials"
 
 create index idx_study_materials_user_id on study_materials(user_id);
 create index idx_study_materials_subject_id on study_materials(subject_id);
+create index idx_study_materials_topic_id on study_materials(topic_id);
 
 drop trigger if exists trg_study_materials_user_id on study_materials;
 create trigger trg_study_materials_user_id
@@ -179,6 +181,9 @@ insert into characters (name, description, system_prompt, is_default) values
     'You are Mia, a friendly and encouraging study partner. Your goal is to help the user understand the topic they are studying. Explain concepts clearly, ask questions to check understanding, and provide examples. Be patient, supportive, and adapt to the user''s level of knowledge.',
     true
   );
+
+-- Add preferred_character_id to profiles (after characters table exists)
+alter table profiles add column if not exists preferred_character_id uuid references characters(id);
 
 -- ============================================================
 -- 5. chat_sessions

@@ -24,6 +24,9 @@ export default function SubjectDetailPage() {
   const [topicName, setTopicName] = useState("");
   const [topicDesc, setTopicDesc] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
 
   useEffect(() => {
     loadData();
@@ -58,6 +61,37 @@ export default function SubjectDetailPage() {
     setShowForm(false);
     await loadData();
     setLoading(false);
+  };
+
+  const startEdit = (topic: Topic) => {
+    setEditId(topic.id);
+    setEditName(topic.name);
+    setEditDesc(topic.description ?? "");
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setEditName("");
+    setEditDesc("");
+  };
+
+  const handleEditTopic = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editId) return;
+    const { error } = await supabase
+      .from("topics")
+      .update({ name: editName, description: editDesc || null })
+      .eq("id", editId);
+    if (!error) {
+      cancelEdit();
+      await loadData();
+    }
+  };
+
+  const handleDeleteTopic = async (topicId: string) => {
+    if (!window.confirm("Biztosan törlöd ezt a témát?")) return;
+    await supabase.from("topics").delete().eq("id", topicId);
+    await loadData();
   };
 
   if (!subject) {
@@ -155,27 +189,75 @@ export default function SubjectDetailPage() {
 
       <div className="grid gap-4">
         {topics.map((topic) => (
-          <div
-            key={topic.id}
-            className="group flex items-center justify-between rounded-xl border border-zinc-200 p-5 transition-all hover:border-accent/30 hover:shadow-sm dark:border-zinc-800"
-          >
-            <div>
-              <h3 className="font-semibold">{topic.name}</h3>
-              {topic.description && (
-                <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-                  {topic.description}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-violet-50 dark:hover:bg-violet-950/50">
-                Tanulj
-              </button>
-              <button className="rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-violet-50 dark:hover:bg-violet-950/50">
-                Kvíz
-              </button>
-
-            </div>
+          <div key={topic.id}>
+            {editId === topic.id ? (
+              <form
+                onSubmit={handleEditTopic}
+                className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800"
+              >
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    required
+                    className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
+                  <textarea
+                    rows={2}
+                    className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700"
+                    >
+                      Mentés
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                    >
+                      Mégse
+                    </button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <div className="flex items-center justify-between rounded-xl border border-zinc-200 p-5 transition-all hover:border-accent/30 hover:shadow-sm dark:border-zinc-800">
+                <div>
+                  <h3 className="font-semibold">{topic.name}</h3>
+                  {topic.description && (
+                    <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                      {topic.description}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/topics/${topic.id}`}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-violet-50 dark:hover:bg-violet-950/50"
+                  >
+                    Megnyitás →
+                  </Link>
+                  <button
+                    onClick={() => startEdit(topic)}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTopic(topic.id)}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-950/50"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

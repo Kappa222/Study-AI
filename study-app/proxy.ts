@@ -32,7 +32,10 @@ export async function proxy(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname === "/login";
   const isProtected =
     request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/setup-profile");
+    request.nextUrl.pathname.startsWith("/setup-profile") ||
+    request.nextUrl.pathname.startsWith("/subjects") ||
+    request.nextUrl.pathname.startsWith("/topics") ||
+    request.nextUrl.pathname.startsWith("/settings");
 
   if (!user && isProtected) {
     return NextResponse.redirect(new URL("/login", request.url));
@@ -46,5 +49,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/setup-profile/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/setup-profile/:path*", "/subjects/:path*", "/topics/:path*", "/settings/:path*", "/login"],
 };

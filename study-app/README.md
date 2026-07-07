@@ -58,15 +58,16 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 - Auth system — signup/login with email confirmation, proxy.ts guard, cookie-based sessions
 - Dashboard — 5 nav cards (Tárgyak, AI Chat, Tananyagok, Kvízek, Haladás)
 - Subjects — 3 global subjects, read-only cards (no add/edit/delete)
-- Topics — per-user create + list under each subject
+- Topics — per-user CRUD (create, edit, delete, list) under each subject
 - Groq streaming API endpoint (`/api/chat`)
 - All DB schema written: 10 tables, RLS, triggers, seed data
 - Characters seeded: Leo & Mia
+- Study Materials API — GET, POST (text + PDF upload to Supabase Storage), DELETE
+- Materials page at `/topics/[topicId]/materials` with text paste + file upload tabs
+- Supabase Storage bucket `materials` with RLS policies
+- Topic detail page at `/topics/[topicId]` with Tanulj / Kvíz / Statisztika tabs
 
 ### In Progress — Phase 2
-- Topics CRUD (needs edit/delete)
-- Study Materials (needs UI + upload to Supabase storage)
-- Topic Detail Page (tabs: AI Chat / Quiz / Stats)
 - AI Chat UI (streaming UI at `/topics/[topicId]/chat`)
 - Session History (resume past chats)
 - Settings Page (change AI persona)
@@ -95,8 +96,8 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `/api/chat` | ✅ | Groq streaming API |
 | `/subjects` | ⬜ | To be replaced with fixed subject picker |
 | `/subjects/[subjectId]/topics` | ❌ | Phase 2 — Topics CRUD |
-| `/topics/[topicId]` | ❌ | Phase 2 — Topic detail (tabs) |
-| `/topics/[topicId]/materials` | ❌ | Phase 2 — Study materials |
+| `/topics/[topicId]` | ✅ | Phase 2 — Topic detail (Tanulj / Kvíz / Statisztika tabs) |
+| `/topics/[topicId]/materials` | ✅ | Phase 2 — Study materials (text + PDF upload) |
 | `/topics/[topicId]/chat` | ❌ | Phase 2 — AI chat session |
 | `/topics/[topicId]/quiz` | ❌ | Phase 3 — Quiz |
 | `/settings` | ❌ | Phase 2 — AI persona, profile settings |
@@ -104,17 +105,14 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 ## Known Issues
 
-- `topics` table not yet created in Supabase (needs full schema run or migration)
 - Tanulj/Kvíz buttons on subject detail page are placeholders
 - No logout button on subjects/topics pages
-- Subject detail page placeholder buttons need to link to `/topics/[topicId]`
-- `study_materials` table needs `topic_id` column added
-- `profiles` table needs `preferred_character_id` column added
 
 ## Migration History
 
 1. `migration_set_user_id_minimal.sql` — added trigger to auto-set user_id on subjects insert
 2. `migration_global_subjects.sql` — removed user_id, seeded 3 global subjects, updated RLS
+3. (Phase 2 setup) — ensured topics table, added topic_id to study_materials, added preferred_character_id to profiles
 
 ## Getting Started
 
