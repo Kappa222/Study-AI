@@ -45,12 +45,25 @@ create trigger on_auth_user_created
   execute function handle_new_user();
 
 -- ============================================================
--- 2. subjects
+-- 1.5 Trigger function: auto-set user_id from auth.uid()
+-- ============================================================
+create or replace function set_user_id()
+returns trigger
+language plpgsql
+security definer set search_path = ''
+as $$
+begin
+  new.user_id = auth.uid();
+  return new;
+end;
+$$;
+
+-- ============================================================
+-- 2. subjects (global — shared across all users)
 -- ============================================================
 create table subjects (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
-  name text not null,
+  name text not null unique,
   description text,
   color text,
   created_at timestamptz not null default now()
@@ -58,14 +71,47 @@ create table subjects (
 
 alter table subjects enable row level security;
 
-create policy "Users can CRUD their own subjects"
-  on subjects for all
-  using (auth.uid() = user_id);
+create policy "Anyone can view subjects"
+  on subjects for select
+  to authenticated
+  using (true);
 
-create index idx_subjects_user_id on subjects(user_id);
+-- Seed the 3 base subjects
+insert into subjects (name, description, color) values
+  ('Matematika', 'Számok, egyenletek, geometria és logika', '#7c3aed'),
+  ('Történelem', 'A múlt eseményei, civilizációk és fordulópontok', '#2563eb'),
+  ('Irodalom', 'Művek, szerzők, költészet és próza', '#059669')
+on conflict (name) do nothing;
 
 -- ============================================================
--- 3. study_materials
+-- 3. topics
+-- ============================================================
+create table topics (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  subject_id uuid not null references subjects(id) on delete cascade,
+  name text not null,
+  description text,
+  created_at timestamptz not null default now()
+);
+
+alter table topics enable row level security;
+
+create policy "Users can CRUD their own topics"
+  on topics for all
+  using (auth.uid() = user_id);
+
+create index idx_topics_user_id on topics(user_id);
+create index idx_topics_subject_id on topics(subject_id);
+
+drop trigger if exists trg_topics_user_id on topics;
+create trigger trg_topics_user_id
+  before insert on topics
+  for each row
+  execute function set_user_id();
+
+-- ============================================================
+-- 4. study_materials
 -- ============================================================
 create table study_materials (
   id uuid primary key default gen_random_uuid(),
@@ -86,6 +132,12 @@ create policy "Users can CRUD their own study materials"
 
 create index idx_study_materials_user_id on study_materials(user_id);
 create index idx_study_materials_subject_id on study_materials(subject_id);
+
+drop trigger if exists trg_study_materials_user_id on study_materials;
+create trigger trg_study_materials_user_id
+  before insert on study_materials
+  for each row
+  execute function set_user_id();
 
 -- ============================================================
 -- 4. characters
@@ -114,6 +166,18 @@ insert into characters (name, description, system_prompt, is_default) values
     'A confused intern. Teach him the material and see if he understands.',
     'You are Robi, a well-meaning but confused intern. You know nothing about the topic the user wants to teach you. Ask naive questions, make silly mistakes, and show genuine curiosity. Your goal is to make the user explain concepts clearly by forcing them to correct your misunderstandings. Always stay in character: enthusiastic, slightly clueless, but eager to learn.',
     true
+  ),
+  (
+    'Leo',
+    'A friendly study partner. Learn together with Leo.',
+    'You are Leo, a friendly and encouraging study partner. Your goal is to help the user understand the topic they are studying. Explain concepts clearly, ask questions to check understanding, and provide examples. Be patient, supportive, and adapt to the user''s level of knowledge.',
+    true
+  ),
+  (
+    'Mia',
+    'A friendly study partner. Learn together with Mia.',
+    'You are Mia, a friendly and encouraging study partner. Your goal is to help the user understand the topic they are studying. Explain concepts clearly, ask questions to check understanding, and provide examples. Be patient, supportive, and adapt to the user''s level of knowledge.',
+    true
   );
 
 -- ============================================================
@@ -123,7 +187,9 @@ create table chat_sessions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
   subject_id uuid not null references subjects(id) on delete cascade,
+  topic_id uuid references topics(id) on delete set null,
   character_id uuid references characters(id),
+  method text not null default 'study',
   title text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -137,6 +203,12 @@ create policy "Users can CRUD their own chat sessions"
 
 create index idx_chat_sessions_user_id on chat_sessions(user_id);
 create index idx_chat_sessions_subject_id on chat_sessions(subject_id);
+
+drop trigger if exists trg_chat_sessions_user_id on chat_sessions;
+create trigger trg_chat_sessions_user_id
+  before insert on chat_sessions
+  for each row
+  execute function set_user_id();
 
 -- ============================================================
 -- 6. chat_messages
@@ -196,6 +268,12 @@ create policy "Users can CRUD their own quiz questions"
 create index idx_quiz_questions_user_id on quiz_questions(user_id);
 create index idx_quiz_questions_subject_id on quiz_questions(subject_id);
 
+drop trigger if exists trg_quiz_questions_user_id on quiz_questions;
+create trigger trg_quiz_questions_user_id
+  before insert on quiz_questions
+  for each row
+  execute function set_user_id();
+
 -- ============================================================
 -- 8. quiz_attempts
 -- ============================================================
@@ -215,6 +293,12 @@ create policy "Users can CRUD their own quiz attempts"
   using (auth.uid() = user_id);
 
 create index idx_quiz_attempts_user_id on quiz_attempts(user_id);
+
+drop trigger if exists trg_quiz_attempts_user_id on quiz_attempts;
+create trigger trg_quiz_attempts_user_id
+  before insert on quiz_attempts
+  for each row
+  execute function set_user_id();
 
 -- ============================================================
 -- 9. progress_log
@@ -236,3 +320,9 @@ create policy "Users can CRUD their own progress logs"
   using (auth.uid() = user_id);
 
 create index idx_progress_log_user_id on progress_log(user_id);
+
+drop trigger if exists trg_progress_log_user_id on progress_log;
+create trigger trg_progress_log_user_id
+  before insert on progress_log
+  for each row
+  execute function set_user_id();

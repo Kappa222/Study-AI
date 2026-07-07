@@ -1,0 +1,184 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { supabase } from "../../../lib/supabase";
+
+interface Subject {
+  id: string;
+  name: string;
+}
+
+interface Topic {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
+export default function SubjectDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const [subject, setSubject] = useState<Subject | null>(null);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [topicName, setTopicName] = useState("");
+  const [topicDesc, setTopicDesc] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, [id]);
+
+  const loadData = async () => {
+    const { data: subj } = await supabase
+      .from("subjects")
+      .select("id, name")
+      .eq("id", id)
+      .single();
+    if (subj) setSubject(subj);
+
+    const { data: tops } = await supabase
+      .from("topics")
+      .select("*")
+      .eq("subject_id", id)
+      .order("created_at", { ascending: false });
+    if (tops) setTopics(tops);
+  };
+
+  const handleCreateTopic = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    await supabase.from("topics").insert({
+      subject_id: id,
+      name: topicName,
+      description: topicDesc || null,
+    });
+    setTopicName("");
+    setTopicDesc("");
+    setShowForm(false);
+    await loadData();
+    setLoading(false);
+  };
+
+  if (!subject) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-zinc-500">Betöltés...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl px-6 py-12">
+      <Link
+        href="/subjects"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-accent"
+      >
+        ← Vissza a tárgyakhoz
+      </Link>
+
+      <h1 className="mb-8 text-2xl font-bold tracking-tight">{subject.name}</h1>
+
+      <div className="mb-10 flex flex-wrap gap-3">
+        <button className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md">
+          🤖 Tanulj
+        </button>
+        <button className="rounded-lg border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-all hover:bg-violet-50 dark:hover:bg-violet-950/50">
+          📝 Interaktív kvíz
+        </button>
+      </div>
+
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Témák</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+        >
+          + Új téma
+        </button>
+      </div>
+
+      {showForm && (
+        <form
+          onSubmit={handleCreateTopic}
+          className="mb-6 rounded-xl border border-zinc-200 p-6 dark:border-zinc-800"
+        >
+          <div className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Téma neve (pl. II. világháború)"
+              required
+              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+              value={topicName}
+              onChange={(e) => setTopicName(e.target.value)}
+            />
+            <textarea
+              placeholder="Leírás (opcionális)"
+              rows={2}
+              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+              value={topicDesc}
+              onChange={(e) => setTopicDesc(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 disabled:opacity-50"
+              >
+                {loading ? "Mentés..." : "Létrehozás"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                Mégse
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {topics.length === 0 && !showForm && (
+        <div className="rounded-xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
+          <p className="text-zinc-500 dark:text-zinc-400">
+            Még nincs témád ebben a tantárgyban.
+          </p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="mt-3 text-sm font-medium text-accent underline underline-offset-2 hover:text-violet-700"
+          >
+            Add hozzá az elsőt
+          </button>
+        </div>
+      )}
+
+      <div className="grid gap-4">
+        {topics.map((topic) => (
+          <div
+            key={topic.id}
+            className="group flex items-center justify-between rounded-xl border border-zinc-200 p-5 transition-all hover:border-accent/30 hover:shadow-sm dark:border-zinc-800"
+          >
+            <div>
+              <h3 className="font-semibold">{topic.name}</h3>
+              {topic.description && (
+                <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                  {topic.description}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-violet-50 dark:hover:bg-violet-950/50">
+                Tanulj
+              </button>
+              <button className="rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-violet-50 dark:hover:bg-violet-950/50">
+                Kvíz
+              </button>
+
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
