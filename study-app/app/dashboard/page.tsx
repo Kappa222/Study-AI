@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabase";
 
 const links = [
   { title: "Tárgyak", desc: "Tantárgyak kezelése", href: "/subjects", icon: "📚" },
-  { title: "AI Chat", desc: "Tanulj Robival", href: "/chat", icon: "💬" },
+  { title: "AI Chat", desc: "Tanulj Leo-val vagy Mia-val", href: "/subjects", icon: "💬" },
   { title: "Tananyagok", desc: "PDF és jegyzetek", href: "/materials", icon: "📄" },
   { title: "Kvízek", desc: "Teszteld a tudásod", href: "/quiz", icon: "📝" },
   { title: "Haladás", desc: "Statisztikák és XP", href: "/progress", icon: "📊" },

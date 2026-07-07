@@ -2,6 +2,8 @@
 
 <!-- AI: Agent memory — update this file after every session with new decisions, completed tasks, and known issues. -->
 
+<!-- AI: Git commit cadence — commit after every completed sub-task. Each commit should be a self-contained, meaningful unit. -->
+
 # Study AI
 
 Hungarian-language AI-powered learning platform based on the **Inverted Teacher** method — you learn by teaching.
@@ -66,12 +68,11 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 - Materials page at `/topics/[topicId]/materials` with text paste + file upload tabs
 - Supabase Storage bucket `materials` with RLS policies
 - Topic detail page at `/topics/[topicId]` with Tanulj / Kvíz / Statisztika tabs
+- Persona selection — Leo/Mia picker on setup-profile + /settings page with profile editing
 
 ### In Progress — Phase 2
 - AI Chat UI (streaming UI at `/topics/[topicId]/chat`)
 - Session History (resume past chats)
-- Settings Page (change AI persona)
-- Setup-profile (add persona picker)
 
 ### In Progress — Phase 3 (not started)
 - Quiz generation from study materials
@@ -100,7 +101,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `/topics/[topicId]/materials` | ✅ | Phase 2 — Study materials (text + PDF upload) |
 | `/topics/[topicId]/chat` | ❌ | Phase 2 — AI chat session |
 | `/topics/[topicId]/quiz` | ❌ | Phase 3 — Quiz |
-| `/settings` | ❌ | Phase 2 — AI persona, profile settings |
+| `/settings` | ✅ | Phase 2 — AI persona, profile settings |
 | `/progress` | ❌ | Phase 4 — Progress dashboard |
 
 ## Known Issues
