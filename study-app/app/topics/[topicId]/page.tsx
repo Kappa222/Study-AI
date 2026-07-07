@@ -157,39 +157,52 @@ export default function TopicDetailPage() {
 
       {activeTab === "Tanulj" && (
         <div key="tanulj" className="flex flex-col gap-6 animate-fade-in-up">
-          {materials.length > 0 && (
-            <div>
-              <h2 className="mb-3 text-sm font-semibold text-zinc-500 uppercase tracking-wide">
-                Tananyagok ({materials.length})
-              </h2>
-              <div className="grid gap-2">
-                {materials.map((m) => (
-                  <div
-                    key={m.id}
-                    className="flex items-center gap-3 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800"
-                  >
-                    <span>{m.file_type === "pdf" ? "📄" : "📝"}</span>
-                    <span className="text-sm font-medium">{m.title}</span>
-                  </div>
-                ))}
+          {materials.length > 0 ? (
+            <>
+              <div>
+                <h2 className="mb-3 text-sm font-semibold text-zinc-500 uppercase tracking-wide">
+                  Tananyagok ({materials.length})
+                </h2>
+                <div className="grid gap-2">
+                  {materials.map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex items-center gap-3 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800"
+                    >
+                      <span>{m.file_type === "pdf" ? "📄" : "📝"}</span>
+                      <span className="text-sm font-medium">{m.title}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
+                <p className="mb-1 text-zinc-500">Készen állsz tanulni?</p>
+                <p className="mb-4 text-xs text-zinc-400">
+                  A tanulás három fázisból áll: gyakorlatok → tanítás → kvíz.
+                </p>
+                <Link
+                  href={`/topics/${topicId}/chat`}
+                  className="inline-block rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+                >
+                  📚 Indíts tanulást
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
+              <p className="mb-1 text-zinc-500">Még nincs tananyagod</p>
+              <p className="mb-4 text-xs text-zinc-400">
+                Adj hozzá tananyagot a témához a tanulás megkezdéséhez.
+              </p>
+              <Link
+                href={`/topics/${topicId}/materials`}
+                className="inline-block rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+              >
+                Tananyag hozzáadása
+              </Link>
             </div>
           )}
-
-          <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
-            <p className="mb-1 text-zinc-500">
-              Készen állsz tanulni?
-            </p>
-            <p className="mb-4 text-xs text-zinc-400">
-              Indíts egy AI chatet, és magyarázd el a témát Leo-nak vagy Mia-nak.
-            </p>
-            <button
-              disabled
-              className="rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white opacity-50"
-            >
-              🤖 Indíts AI chatet (hamarosan)
-            </button>
-          </div>
         </div>
       )}
 

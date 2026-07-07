@@ -155,14 +155,9 @@ export default function SubjectDetailPage() {
 
       <h1 className="mb-8 text-2xl font-bold tracking-tight">{subject.name}</h1>
 
-      <div className="mb-10 flex flex-wrap gap-3">
-        <button className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md">
-          🤖 Tanulj
-        </button>
-        <button className="rounded-lg border border-accent px-5 py-2.5 text-sm font-medium text-accent transition-all hover:bg-violet-50 dark:hover:bg-violet-950/50">
-          📝 Interaktív kvíz
-        </button>
-      </div>
+      <p className="mb-8 text-sm text-zinc-500">
+        Válassz egy témát alább, vagy hozz létre újat a tanulás megkezdéséhez.
+      </p>
 
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Témák</h2>

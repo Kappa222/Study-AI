@@ -34,6 +34,7 @@ export default function MaterialsPage() {
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteMatId, setDeleteMatId] = useState<string | null>(null);
+  const [justAdded, setJustAdded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function MaterialsPage() {
     if (!title.trim() || !content.trim() || !topic) return;
     setLoading(true);
 
-    await fetch("/api/materials", {
+    const res = await fetch("/api/materials", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -89,6 +90,7 @@ export default function MaterialsPage() {
     setContent("");
     await loadData();
     setLoading(false);
+    if (res.ok) setJustAdded(true);
   };
 
   const handlePdfSubmit = async (e: React.FormEvent) => {
@@ -103,13 +105,14 @@ export default function MaterialsPage() {
     formData.append("title", title.trim());
     formData.append("file", file);
 
-    await fetch("/api/materials", { method: "POST", body: formData });
+    const res = await fetch("/api/materials", { method: "POST", body: formData });
 
     setTitle("");
     setFile(null);
     if (fileRef.current) fileRef.current.value = "";
     await loadData();
     setLoading(false);
+    if (res.ok) setJustAdded(true);
   };
 
   const handleDelete = async () => {
@@ -258,7 +261,22 @@ export default function MaterialsPage() {
         </form>
       )}
 
-      {materials.length === 0 ? (
+      {justAdded && (
+        <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-6 text-center dark:border-green-800 dark:bg-green-950/30">
+          <p className="mb-1 font-medium text-green-700 dark:text-green-300">Tananyag elmentve!</p>
+          <p className="mb-3 text-xs text-green-600 dark:text-green-400">
+            Most már elkezdheted a tanulást ezzel az anyaggal.
+          </p>
+          <Link
+            href={`/topics/${topicId}/chat`}
+            className="inline-block rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+          >
+            📚 Indíts tanulást
+          </Link>
+        </div>
+      )}
+
+      {materials.length === 0 && !justAdded ? (
         <div className="rounded-xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
           <p className="text-zinc-500 dark:text-zinc-400">
             Még nincs tananyagod ehhez a témához.

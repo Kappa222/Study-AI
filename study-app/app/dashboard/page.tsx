@@ -5,11 +5,11 @@ import { supabase } from "../../lib/supabase";
 import ConfirmModal from "../components/ConfirmModal";
 
 const links = [
-  { title: "Tárgyak", desc: "Válassz tantárgyat", href: "/subjects", icon: "📚" },
-  { title: "AI Chat", desc: "Tanulj Leo-val vagy Mia-val", href: "/subjects", icon: "💬" },
-  { title: "Tananyagok", desc: "PDF és szöveges jegyzetek", href: "/subjects", icon: "📄" },
+  { title: "Tárgyak", desc: "Válassz tantárgyat és témát", href: "/subjects", icon: "📚" },
+  { title: "AI Chat", desc: "Tanulj a témáidból lépésről lépésre", href: "/subjects", icon: "💬" },
+  { title: "Tananyagok", desc: "Tölts fel jegyzeteket és PDF-eket", href: "/subjects", icon: "📄" },
   { title: "Kvízek", desc: "Teszteld a tudásod", href: "/subjects", icon: "📝" },
-  { title: "Haladás", desc: "Statisztikák és XP", href: "/subjects", icon: "📊" },
+  { title: "Haladás", desc: "Statisztikák és eredmények", href: "/subjects", icon: "📊" },
 ];
 
 export default function DashboardPage() {
