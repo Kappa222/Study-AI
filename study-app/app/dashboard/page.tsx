@@ -1,47 +1,151 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 import ConfirmModal from "../components/ConfirmModal";
 
-const links = [
-  { title: "Tárgyak", desc: "Válassz tantárgyat és témát", href: "/subjects", icon: "📚" },
-  { title: "AI Chat", desc: "Tanulj a témáidból lépésről lépésre", href: "/subjects", icon: "💬" },
-  { title: "Tananyagok", desc: "Tölts fel jegyzeteket és PDF-eket", href: "/subjects", icon: "📄" },
-  { title: "Kvízek", desc: "Teszteld a tudásod", href: "/subjects", icon: "📝" },
-  { title: "Haladás", desc: "Statisztikák és eredmények", href: "/subjects", icon: "📊" },
+interface Session {
+  id: string;
+  status: string;
+  current_checkpoint: number;
+  total_checkpoints: number;
+  updated_at: string;
+  topic_id: string;
+  topic_name: string;
+  subject_name: string;
+}
+
+const quickLinks = [
+  { title: "Tárgyak", desc: "Tantárgyak és témák", href: "/subjects", icon: "📚" },
+  { title: "Tananyagok", desc: "Jegyzetek és PDF-ek", href: "/subjects", icon: "📄" },
+  { title: "Beállítások", desc: "Profil és társ", href: "/settings", icon: "⚙️" },
 ];
 
 export default function DashboardPage() {
   const [username, setUsername] = useState("");
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [stats, setStats] = useState({ topics: 0, quizzes: 0 });
   const [showLogout, setShowLogout] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) {
-        window.location.href = "/login";
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", data.user.id)
-        .single();
-
-      if (!profile?.username) {
-        window.location.href = "/setup-profile";
-        return;
-      }
-
-      setUsername(profile.username);
-    });
+    initPage();
   }, []);
+
+  const initPage = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { window.location.href = "/login"; return; }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.username) {
+      window.location.href = "/setup-profile";
+      return;
+    }
+
+    setUsername(profile.username);
+    await loadData(user.id);
+    setLoading(false);
+  };
+
+  const loadData = async (userId: string) => {
+    const { data: s } = await supabase
+      .from("chat_sessions")
+      .select(`
+        id, status, current_checkpoint, total_checkpoints, updated_at,
+        topic_id,
+        topics!inner(name),
+        subjects!inner(name)
+      `)
+      .eq("user_id", userId)
+      .neq("status", "completed")
+      .order("updated_at", { ascending: false })
+      .limit(5);
+
+    if (s) {
+      setSessions(
+        s.map((row: any) => ({
+          id: row.id,
+          status: row.status,
+          current_checkpoint: row.current_checkpoint,
+          total_checkpoints: row.total_checkpoints,
+          updated_at: row.updated_at,
+          topic_id: row.topic_id,
+          topic_name: row.topics?.name ?? "",
+          subject_name: row.subjects?.name ?? "",
+        })),
+      );
+    }
+
+    const { count: tCount } = await supabase
+      .from("chat_sessions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+
+    const { count: qCount } = await supabase
+      .from("quiz_attempts")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+
+    setStats({
+      topics: tCount ?? 0,
+      quizzes: qCount ?? 0,
+    });
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/login";
   };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 24) return `${hours} órája`;
+    const days = Math.floor(hours / 24);
+    return `${days} napja`;
+  };
+
+  const statusLabels: Record<string, string> = {
+    exercises: "Gyakorlatok",
+    teaching: "Tanítás",
+    quiz: "Kvíz",
+    completed: "Kész",
+  };
+
+  const progressDots = (current: number, total: number) => {
+    const dots = [];
+    const max = Math.max(total, 1);
+    for (let i = 0; i < max; i++) {
+      dots.push(
+        <span
+          key={i}
+          className={`inline-block h-2 w-2 rounded-full ${
+            i < current ? "bg-accent" : i === current ? "bg-accent/50" : "bg-zinc-200 dark:bg-zinc-700"
+          }`}
+        />,
+      );
+    }
+    return dots;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-accent" />
+          <p className="text-sm text-zinc-500">Betöltés...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex min-h-screen max-w-4xl flex-col px-6 py-12">
@@ -72,24 +176,76 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {links.map((link, i) => (
-          <a
-            key={link.title}
-            href={link.href}
-            className="group flex flex-col gap-3 rounded-xl border border-zinc-200 p-6 transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg dark:border-zinc-800 dark:hover:border-accent/40 animate-fade-in-up"
-            style={{ animationDelay: `${i * 0.08}s` }}
-          >
-            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-violet-50 text-xl transition-colors group-hover:bg-accent/10 dark:bg-violet-950/50 dark:group-hover:bg-accent/20">
-              {link.icon}
-            </span>
-            <span className="text-lg font-semibold group-hover:text-accent transition-colors">{link.title}</span>
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              {link.desc}
-            </span>
-          </a>
-        ))}
-      </div>
+      <section className="mb-10">
+        <h2 className="mb-4 text-lg font-semibold">📚 Folytasd a tanulást</h2>
+
+        {sessions.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
+            <p className="mb-1 text-zinc-500 dark:text-zinc-400">
+              Még nem tanultál semmit.
+            </p>
+            <p className="mb-4 text-xs text-zinc-400">
+              Válassz egy tantárgyat, adj hozzá tananyagot, és kezdd el a tanulást!
+            </p>
+            <Link
+              href="/subjects"
+              className="inline-block rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+            >
+              Tárgyak kiválasztása →
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {sessions.map((session) => (
+              <Link
+                key={session.id}
+                href={`/topics/${session.topic_id}/chat`}
+                className="group rounded-xl border border-zinc-200 p-5 transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800 dark:hover:border-accent/40"
+              >
+                <p className="text-xs text-zinc-400">{session.subject_name}</p>
+                <h3 className="mt-0.5 font-semibold group-hover:text-accent transition-colors">
+                  {session.topic_name}
+                </h3>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  {statusLabels[session.status] ?? session.status} · {session.current_checkpoint}/{session.total_checkpoints}
+                </p>
+                <div className="mt-3 flex items-center gap-1">
+                  {progressDots(session.current_checkpoint, session.total_checkpoints)}
+                </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-xs text-zinc-400">{formatDate(session.updated_at)}</span>
+                  <span className="text-sm font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
+                    Folytasd →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mb-10">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+          Gyors navigáció
+        </h3>
+        <div className="flex flex-wrap gap-3">
+          {quickLinks.map((link) => (
+            <a
+              key={link.title}
+              href={link.href}
+              className="flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-700 transition-all hover:border-accent/30 hover:text-accent dark:border-zinc-800 dark:text-zinc-300 dark:hover:border-accent/40"
+            >
+              <span>{link.icon}</span>
+              <span>{link.title}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-auto flex items-center gap-6 border-t border-zinc-200 pt-6 text-sm text-zinc-500 dark:border-zinc-800">
+        <span>Tanult témák: <strong className="text-accent">{stats.topics}</strong></span>
+        <span>Kitöltött kvízek: <strong className="text-accent">{stats.quizzes}</strong></span>
+      </section>
 
       <ConfirmModal
         open={showLogout}
