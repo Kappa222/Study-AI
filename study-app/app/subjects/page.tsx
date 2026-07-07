@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
 const SUBJECT_NAMES = ["Matematika", "Történelem", "Irodalom"] as const;
@@ -39,6 +40,12 @@ export default function SubjectsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
+      <Link
+        href="/dashboard"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-accent"
+      >
+        ← Vissza a dashboardra
+      </Link>
       <h1 className="mb-8 text-2xl font-bold tracking-tight">Tárgyak</h1>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
