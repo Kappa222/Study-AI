@@ -133,7 +133,7 @@ export default function TopicDetailPage() {
       <div className="mb-6">
         <Link
           href={`/topics/${topicId}/materials`}
-          className="rounded-lg border border-accent px-4 py-2 text-sm font-medium text-accent transition-all hover:bg-violet-50 dark:hover:bg-violet-950/50"
+          className="cursor-pointer rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
         >
           Tananyagok kezelése
         </Link>
@@ -167,7 +167,7 @@ export default function TopicDetailPage() {
                   {materials.map((m) => (
                     <div
                       key={m.id}
-                      className="flex items-center gap-3 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800"
+                      className="flex items-center gap-3 rounded-2xl border border-zinc-200/60 bg-white px-4 py-3 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900"
                     >
                       <span>{m.file_type === "pdf" ? "📄" : "📝"}</span>
                       <span className="text-sm font-medium">{m.title}</span>
@@ -176,28 +176,28 @@ export default function TopicDetailPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
+              <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
                 <p className="mb-1 text-zinc-500">Készen állsz tanulni?</p>
                 <p className="mb-4 text-xs text-zinc-400">
                   A tanulás három fázisból áll: gyakorlatok → tanítás → kvíz.
                 </p>
                 <Link
                   href={`/topics/${topicId}/chat`}
-                  className="inline-block rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+                  className="inline-block cursor-pointer rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
                 >
                   📚 Indíts tanulást
                 </Link>
               </div>
             </>
           ) : (
-            <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
+            <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
               <p className="mb-1 text-zinc-500">Még nincs tananyagod</p>
               <p className="mb-4 text-xs text-zinc-400">
                 Adj hozzá tananyagot a témához a tanulás megkezdéséhez.
               </p>
               <Link
                 href={`/topics/${topicId}/materials`}
-                className="inline-block rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+                className="inline-block cursor-pointer rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
               >
                 Tananyag hozzáadása
               </Link>
@@ -207,7 +207,7 @@ export default function TopicDetailPage() {
       )}
 
       {activeTab === "Kvíz" && (
-        <div key="kviz" className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700 animate-fade-in-up">
+        <div key="kviz" className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700 animate-fade-in-up">
           <p className="mb-1 text-zinc-500">Kvíz funkció</p>
           <p className="text-xs text-zinc-400">Hamarosan elérhető...</p>
         </div>
@@ -215,15 +215,15 @@ export default function TopicDetailPage() {
 
       {activeTab === "Statisztika" && (
         <div key="statisztika" className="grid gap-4 sm:grid-cols-3 animate-fade-in-up">
-          <div className="rounded-xl border border-zinc-200 p-6 text-center dark:border-zinc-800">
+          <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 text-center shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
             <p className="text-2xl font-bold text-accent">{sessionCount}</p>
             <p className="mt-1 text-xs text-zinc-500">Chat szekciók</p>
           </div>
-          <div className="rounded-xl border border-zinc-200 p-6 text-center dark:border-zinc-800">
+          <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 text-center shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
             <p className="text-2xl font-bold text-accent">{materials.length}</p>
             <p className="mt-1 text-xs text-zinc-500">Tananyagok</p>
           </div>
-          <div className="rounded-xl border border-zinc-200 p-6 text-center dark:border-zinc-800">
+          <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 text-center shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
             <p className="text-2xl font-bold text-accent">—</p>
             <p className="mt-1 text-xs text-zinc-500">Kvízek</p>
           </div>

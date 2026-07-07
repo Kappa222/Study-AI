@@ -57,7 +57,7 @@ export default function SetupProfilePage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 dark:bg-black">
-      <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="w-full max-w-md rounded-2xl border border-zinc-200/60 bg-white p-8 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
         <h1 className="mb-2 text-2xl font-bold">Üdvözlünk!</h1>
         <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
           Válassz felhasználónevet és társat a tanuláshoz.
@@ -68,7 +68,7 @@ export default function SetupProfilePage() {
             type="text"
             placeholder="Felhasználónév"
             required
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-accent/30"
+            className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-accent/30"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -83,10 +83,10 @@ export default function SetupProfilePage() {
                   key={char.id}
                   type="button"
                   onClick={() => setSelectedChar(char.id)}
-                  className={`rounded-xl border-2 p-4 text-left transition-all ${
+                  className={`rounded-2xl border-2 p-4 text-left transition-all duration-200 ${
                     selectedChar === char.id
                       ? "border-accent bg-violet-50 dark:bg-violet-950/30"
-                      : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                      : "border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-700 dark:hover:border-zinc-600"
                   }`}
                 >
                   <p className="text-lg font-bold">{char.name}</p>
@@ -101,14 +101,15 @@ export default function SetupProfilePage() {
           <button
             type="submit"
             disabled={loading || !selectedChar}
-            className="rounded-lg bg-accent py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md disabled:opacity-50 dark:hover:bg-violet-600"
           >
+            {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
             {loading ? "Mentés..." : "Kezdjük!"}
           </button>
         </form>
 
         {message && (
-          <p className="mt-4 text-sm text-red-600">{message}</p>
+          <p className="mt-4 text-sm text-red-600 dark:text-red-400">{message}</p>
         )}
       </div>
     </div>

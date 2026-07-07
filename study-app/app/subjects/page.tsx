@@ -50,14 +50,14 @@ export default function SubjectsPage() {
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {sorted.map((subject) => (
-          <a
+          <Link
             key={subject.id}
             href={`/subjects/${subject.id}`}
-            className="group flex flex-col gap-3 rounded-xl border border-zinc-200 p-6 transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg dark:border-zinc-800 dark:hover:border-accent/40"
-            style={{ borderLeftColor: subject.color ?? NAME_COLORS[subject.name] ?? "#7c3aed", borderLeftWidth: 4 }}
+            className="group flex flex-col gap-3 rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-accent/40"
+            style={{ borderLeft: `4px solid ${subject.color ?? NAME_COLORS[subject.name] ?? "#7c3aed"}` }}
           >
             <span
-              className="flex h-12 w-12 items-center justify-center rounded-lg text-lg font-bold text-white"
+              className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white"
               style={{ backgroundColor: subject.color ?? NAME_COLORS[subject.name] ?? "#7c3aed" }}
             >
               {subject.name[0]}
@@ -70,7 +70,7 @@ export default function SubjectsPage() {
                 {subject.description}
               </p>
             )}
-          </a>
+          </Link>
         ))}
       </div>
     </div>

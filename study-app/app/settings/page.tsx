@@ -96,7 +96,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
+    <div className="mx-auto max-w-4xl px-6 py-12">
       <Link
         href="/dashboard"
         className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-accent"
@@ -106,7 +106,7 @@ export default function SettingsPage() {
       <h1 className="mb-8 text-2xl font-bold tracking-tight">Beállítások</h1>
 
       <form onSubmit={handleSave} className="flex flex-col gap-8">
-        <section className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+        <section className="rounded-2xl border border-zinc-200/60 bg-white p-8 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
           <h2 className="mb-4 text-lg font-semibold">Profil</h2>
           <div className="flex flex-col gap-4">
             <div>
@@ -116,7 +116,7 @@ export default function SettingsPage() {
               <input
                 type="text"
                 required
-                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+                className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
@@ -124,7 +124,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
+        <section className="rounded-2xl border border-zinc-200/60 bg-white p-8 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
           <h2 className="mb-4 text-lg font-semibold">Tanulótárs</h2>
           <div className="grid grid-cols-2 gap-3">
             {characters.map((char) => (
@@ -135,7 +135,7 @@ export default function SettingsPage() {
                 className={`rounded-xl border-2 p-4 text-left transition-all ${
                   selectedChar === char.id
                     ? "border-accent bg-violet-50 dark:bg-violet-950/30"
-                    : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                    : "border-zinc-200 hover:border-zinc-300 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-700 dark:hover:border-zinc-600"
                 }`}
               >
                 <p className="text-lg font-bold">{char.name}</p>
@@ -151,7 +151,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-accent px-6 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md disabled:opacity-50"
+            className="cursor-pointer rounded-lg bg-accent px-6 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? "Mentés..." : "Mentés"}
           </button>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setShowLogout(true)}
-            className="ml-auto rounded-lg px-4 py-2 text-sm text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
+            className="ml-auto cursor-pointer rounded-lg px-4 py-2 text-sm text-zinc-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-600 hover:shadow-sm active:scale-[0.98] dark:hover:bg-red-950/50 dark:hover:text-red-400"
           >
             Kijelentkezés
           </button>

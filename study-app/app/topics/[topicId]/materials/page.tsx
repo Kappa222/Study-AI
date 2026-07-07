@@ -200,14 +200,14 @@ export default function MaterialsPage() {
       {tab === "text" ? (
         <form
           onSubmit={handleTextSubmit}
-          className="mb-10 rounded-xl border border-zinc-200 p-6 dark:border-zinc-800"
+          className="mb-10 rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900"
         >
           <div className="flex flex-col gap-4">
             <input
               type="text"
               placeholder="Cím"
               required
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+              className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -215,14 +215,14 @@ export default function MaterialsPage() {
               placeholder="Illeszd be a tananyag szövegét..."
               rows={8}
               required
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+              className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
             <button
               type="submit"
               disabled={loading}
-              className="self-start rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md disabled:opacity-50"
+              className="self-start cursor-pointer rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? "Mentés..." : "Hozzáadás"}
             </button>
@@ -231,14 +231,14 @@ export default function MaterialsPage() {
       ) : (
         <form
           onSubmit={handlePdfSubmit}
-          className="mb-10 rounded-xl border border-zinc-200 p-6 dark:border-zinc-800"
+          className="mb-10 rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900"
         >
           <div className="flex flex-col gap-4">
             <input
               type="text"
               placeholder="Cím"
               required
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+              className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -253,7 +253,7 @@ export default function MaterialsPage() {
             <button
               type="submit"
               disabled={loading || !file}
-              className="self-start rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md disabled:opacity-50"
+              className="self-start cursor-pointer rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? "Feltöltés..." : "Feltöltés"}
             </button>
@@ -262,14 +262,14 @@ export default function MaterialsPage() {
       )}
 
       {justAdded && (
-        <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-6 text-center dark:border-green-800 dark:bg-green-950/30">
+        <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-6 text-center dark:border-green-800 dark:bg-green-950/30">
           <p className="mb-1 font-medium text-green-700 dark:text-green-300">Tananyag elmentve!</p>
           <p className="mb-3 text-xs text-green-600 dark:text-green-400">
             Most már elkezdheted a tanulást ezzel az anyaggal.
           </p>
           <Link
             href={`/topics/${topicId}/chat`}
-            className="inline-block rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+            className="inline-block cursor-pointer rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
           >
             📚 Indíts tanulást
           </Link>
@@ -277,7 +277,7 @@ export default function MaterialsPage() {
       )}
 
       {materials.length === 0 && !justAdded ? (
-        <div className="rounded-xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
+        <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
           <p className="text-zinc-500 dark:text-zinc-400">
             Még nincs tananyagod ehhez a témához.
           </p>
@@ -286,7 +286,7 @@ export default function MaterialsPage() {
         <div className="grid gap-3">
           {materials.map((material) => (
             <div key={material.id}>
-              <div className="flex items-center justify-between rounded-xl border border-zinc-200 p-4 transition-all hover:border-accent/30 hover:shadow-sm dark:border-zinc-800">
+              <div className="flex items-center justify-between rounded-2xl border border-zinc-200/60 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-accent/40">
                 <div className="flex items-center gap-3">
                   <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-sm dark:bg-violet-950/50">
                     {material.file_type === "pdf" ? "📄" : "📝"}
@@ -307,7 +307,7 @@ export default function MaterialsPage() {
                           expandedId === material.id ? null : material.id,
                         )
                       }
-                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-violet-50 dark:hover:bg-violet-950/50"
+                      className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-violet-950/50"
                     >
                       {expandedId === material.id ? "Elrejt" : "Megtekint"}
                     </button>
@@ -316,30 +316,29 @@ export default function MaterialsPage() {
                       href={material.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-violet-50 dark:hover:bg-violet-950/50"
+                      className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-violet-950/50"
                     >
                       Megnyitás
                     </a>
                   ) : null}
                   <button
                     onClick={() => setDeleteMatId(material.id)}
-                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-950/50"
+                    aria-label="Törlés"
+                    className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-red-950/50"
                   >
                     🗑️
                   </button>
                 </div>
               </div>
               <div
-                className={`grid transition-all duration-300 ${
+                className={`overflow-hidden transition-all duration-300 ${
                   expandedId === material.id && material.content
-                    ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0"
+                    ? "max-h-[2000px] opacity-100"
+                    : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="overflow-hidden">
-                  <div className="mt-1 rounded-b-xl border-x border-b border-zinc-200 bg-zinc-50 p-4 text-sm leading-relaxed whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-900/50">
-                    {material.content}
-                  </div>
+                <div className="mt-1 rounded-b-xl border-x border-b border-zinc-200 bg-zinc-50 p-4 text-sm leading-relaxed whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-900/50">
+                  {material.content}
                 </div>
               </div>
             </div>

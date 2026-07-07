@@ -161,32 +161,32 @@ export default function SubjectDetailPage() {
 
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Témák</h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
-        >
-          + Új téma
-        </button>
+                  <button
+                    onClick={() => setShowForm(!showForm)}
+                    className="cursor-pointer rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
+                  >
+                    + Új téma
+                  </button>
       </div>
 
       {showForm && (
         <form
           onSubmit={handleCreateTopic}
-          className="mb-6 rounded-xl border border-zinc-200 p-6 dark:border-zinc-800"
+          className="mb-6 rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900"
         >
           <div className="flex flex-col gap-4">
             <input
               type="text"
               placeholder="Téma neve (pl. II. világháború)"
               required
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+              className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
               value={topicName}
               onChange={(e) => setTopicName(e.target.value)}
             />
             <textarea
               placeholder="Leírás (opcionális)"
               rows={2}
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+              className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
               value={topicDesc}
               onChange={(e) => setTopicDesc(e.target.value)}
             />
@@ -194,14 +194,14 @@ export default function SubjectDetailPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 disabled:opacity-50"
+                className="cursor-pointer rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98] disabled:opacity-50 dark:hover:bg-violet-600"
               >
                 {loading ? "Mentés..." : "Létrehozás"}
               </button>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 transition-all duration-200 hover:-translate-y-0.5 hover:bg-zinc-50 hover:shadow-sm active:scale-[0.98] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 Mégse
               </button>
@@ -211,7 +211,7 @@ export default function SubjectDetailPage() {
       )}
 
       {topics.length === 0 && !showForm && (
-        <div className="rounded-xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
+        <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
           <p className="text-zinc-500 dark:text-zinc-400">
             Még nincs témád ebben a tantárgyban.
           </p>
@@ -230,19 +230,20 @@ export default function SubjectDetailPage() {
             {editId === topic.id ? (
               <form
                 onSubmit={handleEditTopic}
-                className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800"
+                className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900"
               >
                 <div className="flex flex-col gap-3">
                   <input
                     type="text"
                     required
-                    className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+                    className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                   />
                   <textarea
                     rows={2}
-                    className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
+                    placeholder="Leírás (opcionális)"
+                    className="rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800"
                     value={editDesc}
                     onChange={(e) => setEditDesc(e.target.value)}
                   />
@@ -256,7 +257,7 @@ export default function SubjectDetailPage() {
                     <button
                       type="button"
                       onClick={cancelEdit}
-                      className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                      className="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 transition-all duration-200 hover:-translate-y-0.5 hover:bg-zinc-50 hover:shadow-sm active:scale-[0.98] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
                     >
                       Mégse
                     </button>
@@ -264,7 +265,7 @@ export default function SubjectDetailPage() {
                 </div>
               </form>
             ) : (
-              <div className="flex items-center justify-between rounded-xl border border-zinc-200 p-5 transition-all hover:border-accent/30 hover:shadow-sm dark:border-zinc-800">
+              <div className="flex items-center justify-between rounded-2xl border border-zinc-200/60 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-accent/40">
                 <div>
                   <h3 className="font-semibold">{topic.name}</h3>
                   {topic.description && (
@@ -276,19 +277,21 @@ export default function SubjectDetailPage() {
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/topics/${topic.id}`}
-                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-violet-50 dark:hover:bg-violet-950/50"
+                    className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-violet-950/50"
                   >
                     Megnyitás →
                   </Link>
                   <button
                     onClick={() => startEdit(topic)}
-                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    aria-label="Szerkesztés"
+                    className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-zinc-100 hover:shadow-sm active:scale-[0.98] dark:hover:bg-zinc-800"
                   >
                     ✏️
                   </button>
                   <button
                     onClick={() => setDeleteTopicId(topic.id)}
-                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-950/50"
+                    aria-label="Törlés"
+                    className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-red-950/50"
                   >
                     🗑️
                   </button>

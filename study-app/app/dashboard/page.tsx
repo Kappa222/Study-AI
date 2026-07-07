@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
-import ConfirmModal from "../components/ConfirmModal";
 
 interface Session {
   id: string;
@@ -26,7 +25,6 @@ export default function DashboardPage() {
   const [username, setUsername] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
   const [stats, setStats] = useState({ topics: 0, quizzes: 0 });
-  const [showLogout, setShowLogout] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -98,11 +96,6 @@ export default function DashboardPage() {
     });
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  };
-
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     const now = new Date();
@@ -128,7 +121,7 @@ export default function DashboardPage() {
         <span
           key={i}
           className={`inline-block h-2 w-2 rounded-full ${
-            i < current ? "bg-accent" : i === current ? "bg-accent/50" : "bg-zinc-200 dark:bg-zinc-700"
+            i < current ? "bg-accent" : i === current ? "bg-accent/70" : "bg-zinc-200 dark:bg-zinc-700"
           }`}
         />,
       );
@@ -160,27 +153,13 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <a
-            href="/settings"
-            className="text-sm text-zinc-500 transition-colors hover:text-accent"
-          >
-            ⚙️
-          </a>
-          <button
-            onClick={() => setShowLogout(true)}
-            className="rounded-lg px-3 py-1.5 text-sm text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
-          >
-            Kijelentkezés
-          </button>
-        </div>
       </header>
 
       <section className="mb-10">
         <h2 className="mb-4 text-lg font-semibold">📚 Folytasd a tanulást</h2>
 
         {sessions.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
+          <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
             <p className="mb-1 text-zinc-500 dark:text-zinc-400">
               Még nem tanultál semmit.
             </p>
@@ -189,7 +168,7 @@ export default function DashboardPage() {
             </p>
             <Link
               href="/subjects"
-              className="inline-block rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md"
+              className="inline-block cursor-pointer rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
             >
               Tárgyak kiválasztása →
             </Link>
@@ -200,7 +179,7 @@ export default function DashboardPage() {
               <Link
                 key={session.id}
                 href={`/topics/${session.topic_id}/chat`}
-                className="group rounded-xl border border-zinc-200 p-5 transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800 dark:hover:border-accent/40"
+                className="group rounded-2xl border border-zinc-200/60 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-accent/40"
               >
                 <p className="text-xs text-zinc-400">{session.subject_name}</p>
                 <h3 className="mt-0.5 font-semibold group-hover:text-accent transition-colors">
@@ -230,33 +209,22 @@ export default function DashboardPage() {
         </h3>
         <div className="flex flex-wrap gap-3">
           {quickLinks.map((link) => (
-            <a
+            <Link
               key={link.title}
               href={link.href}
-              className="flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-700 transition-all hover:border-accent/30 hover:text-accent dark:border-zinc-800 dark:text-zinc-300 dark:hover:border-accent/40"
+              className="flex items-center gap-2 rounded-lg border border-zinc-200/60 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-accent/40"
             >
               <span>{link.icon}</span>
               <span>{link.title}</span>
-            </a>
+            </Link>
           ))}
         </div>
       </section>
 
-      <section className="mt-auto flex items-center gap-6 border-t border-zinc-200 pt-6 text-sm text-zinc-500 dark:border-zinc-800">
+      <section className="mt-auto flex items-center gap-6 border-t border-zinc-200/60 pt-6 text-sm text-zinc-500 dark:border-zinc-800/60">
         <span>Tanult témák: <strong className="text-accent">{stats.topics}</strong></span>
         <span>Kitöltött kvízek: <strong className="text-accent">{stats.quizzes}</strong></span>
       </section>
-
-      <ConfirmModal
-        open={showLogout}
-        title="Kijelentkezés"
-        message="Biztosan ki szeretnél jelentkezni?"
-        confirmLabel="Kijelentkezés"
-        cancelLabel="Mégse"
-        variant="danger"
-        onConfirm={handleLogout}
-        onCancel={() => setShowLogout(false)}
-      />
     </div>
   );
 }

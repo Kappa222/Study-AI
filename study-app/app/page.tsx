@@ -6,7 +6,7 @@ const steps = [
 
 const features = [
   { title: "Tananyag kezelés", desc: "Tölts fel PDF fájlokat vagy illeszd be a jegyzeteidet szövegként. Minden anyagod egy helyen rendezve." },
-  { title: "AI Chat", desc: "Tanítsd meg Robit, a virtuális gyakornokot az Inverted Teacher módszerrel, vagy kérj segítséget a tananyaghoz." },
+  { title: "AI Chat", desc: "Tanítsd meg a virtuális tanulótársadat az Inverted Teacher módszerrel, vagy kérj segítséget a tananyaghoz." },
   { title: "Kvízek", desc: "Az AI automatikusan kérdéseket generál a tananyagodból. Válaszolj, és azonnali visszajelzést kapsz." },
   { title: "Haladás követés", desc: "Kövesd nyomon a statisztikáidat, gyűjts XP-t, és építs streaks-eket a motiváció fenntartásához." },
 ];
@@ -26,20 +26,20 @@ export default function Home() {
         </p>
         <a
           href="/login"
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 text-base font-medium text-white transition-all hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-500/25"
+          className="mt-8 inline-flex h-12 cursor-pointer items-center justify-center rounded-lg bg-accent px-6 text-base font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
         >
           Kezdj el tanulni
         </a>
       </section>
 
-      <section className="border-t border-zinc-200/70 px-6 py-20 dark:border-zinc-800/70">
+      <section className="border-t border-zinc-200 px-6 py-20 dark:border-zinc-800">
         <div className="mx-auto max-w-5xl">
-          <h2 className="text-center text-2xl font-semibold tracking-tight md:text-3xl">
+          <h2 className="text-center text-2xl font-bold tracking-tight md:text-3xl">
             Hogyan működik?
           </h2>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {steps.map((item) => (
-              <div key={item.step} className="group flex flex-col gap-3 rounded-xl border border-zinc-200 p-6 transition-all hover:border-accent/30 hover:shadow-md dark:border-zinc-800 dark:hover:border-accent/40">
+              <div key={item.step} className="group flex flex-col gap-3 rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-accent/40">
                 <span className="text-sm font-medium text-accent">{item.step}</span>
                 <h3 className="text-lg font-semibold">{item.title}</h3>
                 <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{item.desc}</p>
@@ -49,16 +49,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-t border-zinc-200/70 px-6 py-20 dark:border-zinc-800/70">
+      <section className="border-t border-zinc-200 px-6 py-20 dark:border-zinc-800">
         <div className="mx-auto max-w-5xl">
-          <h2 className="text-center text-2xl font-semibold tracking-tight md:text-3xl">
+          <h2 className="text-center text-2xl font-bold tracking-tight md:text-3xl">
             Mit kínálunk?
           </h2>
           <div className="mt-12 grid gap-6 md:grid-cols-2">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group rounded-xl border border-zinc-200 p-6 transition-all hover:border-accent/30 hover:shadow-md dark:border-zinc-800 dark:hover:border-accent/40"
+                className="group rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-accent/40"
               >
                 <h3 className="text-lg font-semibold group-hover:text-accent transition-colors">{feature.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
@@ -70,8 +70,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-t border-zinc-200/70 px-6 py-20 text-center dark:border-zinc-800/70">
-        <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
+      <section className="border-t border-zinc-200 px-6 py-20 text-center dark:border-zinc-800">
+        <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
           Készen állsz a tanulásra?
         </h2>
         <p className="mt-4 text-zinc-600 dark:text-zinc-400">
@@ -79,13 +79,13 @@ export default function Home() {
         </p>
         <a
           href="/login"
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 text-base font-medium text-white transition-all hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-500/25"
+          className="mt-8 inline-flex h-12 cursor-pointer items-center justify-center rounded-lg bg-accent px-6 text-base font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
         >
           Regisztráció / Belépés
         </a>
       </section>
 
-      <footer className="border-t border-zinc-200/70 px-6 py-8 text-center text-sm text-zinc-500 dark:border-zinc-800/70">
+      <footer className="border-t border-zinc-200 px-6 py-8 text-center text-sm text-zinc-500 dark:border-zinc-800">
         &copy; {new Date().getFullYear()} Study AI
       </footer>
     </div>
