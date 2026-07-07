@@ -32,6 +32,9 @@ The AI plays two personas (**Leo** & **Mia** — identical behavior, only the na
 | Topics | Per-user CRUD inside a subject |
 | Chat style | Streaming responses (real-time token output) |
 | Session storage | Cookies — so server-side code (proxy, API routes) can read auth state |
+| Learning flow | Structured: Exercises → Reverse Teaching → Quiz (one session, resumable) |
+| Exercise checkpoints | Saved after each exercise; quitting mid-exercise restarts it |
+| Progress UI | Horizontal roadmap with bubbles (completed / current / locked); tap any completed to redo |
 | Gamification | Planned: daily streaks, XP, per-topic stats |
 
 ## Database Schema
@@ -71,8 +74,9 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 - Persona selection — Leo/Mia picker on setup-profile + /settings page with profile editing
 
 ### In Progress — Phase 2
-- AI Chat UI (streaming UI at `/topics/[topicId]/chat`)
-- Session History (resume past chats)
+- AI Chat UI — three-phase learning session (exercises → reverse teaching → quiz)
+- Horizontal progress roadmap with checkpoint bubbles (tap any completed to redo)
+- Session resume: continue where left off
 
 ### In Progress — Phase 3 (not started)
 - Quiz generation from study materials
@@ -99,7 +103,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `/subjects/[subjectId]/topics` | ❌ | Phase 2 — Topics CRUD |
 | `/topics/[topicId]` | ✅ | Phase 2 — Topic detail (Tanulj / Kvíz / Statisztika tabs) |
 | `/topics/[topicId]/materials` | ✅ | Phase 2 — Study materials (text + PDF upload) |
-| `/topics/[topicId]/chat` | ❌ | Phase 2 — AI chat session |
+| `/topics/[topicId]/chat` | ❌ | Phase 2 — Structured learning session with roadmap |
 | `/topics/[topicId]/quiz` | ❌ | Phase 3 — Quiz |
 | `/settings` | ✅ | Phase 2 — AI persona, profile settings |
 | `/progress` | ❌ | Phase 4 — Progress dashboard |

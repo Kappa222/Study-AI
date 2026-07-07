@@ -32,11 +32,17 @@
 
 ### Task 4 — AI Chat UI
 - Streaming chat interface at `/topics/[topicId]/chat`
-- Create/attach chat session to topic + user's preferred character
-- Send topic's study materials context to AI
-- Save messages to `chat_messages` table
-- Display chat history (resume previous session)
-- List and switch between past sessions for the topic
+- Three-phase learning sequence in a single session:
+  a) Introductory exercises (interactive Q&A, AI decides count based on material size)
+  b) Reverse teaching (Leo/Mia persona — user explains, AI asks questions)
+  c) Quiz (AI generates questions from materials, results saved to quiz_attempts)
+- Horizontal progress roadmap with bubbles (completed / current / locked)
+- Checkpoints saved after each exercise — quitting mid-exercise restarts that one
+- Session resume: user sees roadmap, can tap any completed bubble to redo it
+- Tap current bubble to continue from where they left off
+- Create/attach session to topic + user's preferred character
+- Topic's study materials sent as context to AI
+- Phase indicator in chat UI
 
 ### Task 5 — Persona Selection
 - Add Leo/Mia picker to `/setup-profile` page (saves to `profiles.preferred_character_id`)
@@ -54,11 +60,11 @@
 ## Phase 3 — Assessment
 
 ### Task 1 — Quiz Generation
-- AI generates quiz questions from a topic's study materials
+- AI generates quiz questions from a topic's study materials (final bubble in learning session roadmap)
 - Store in `quiz_questions` table (add `topic_id` column)
 
 ### Task 2 — Quiz UI
-- Interactive quiz at `/topics/[topicId]/quiz`
+- Interactive quiz at `/topics/[topicId]/quiz` (standalone, outside the learning session)
 - Instant feedback (correct/wrong, show correct answer)
 
 ### Task 3 — Quiz History
