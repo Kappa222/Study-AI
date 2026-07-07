@@ -65,19 +65,21 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 ### Done
 
 **Foundation:**
-- Landing page with hero, how-it-works steps, features grid, CTA sections, footer
-- Auth system — signup/login with email confirmation, `proxy.ts` guard, cookie-based sessions
+- Landing page — dark hero panel with orbs, floating decorations, chat mockup, steps with SVG icons, features with SVG icons + animated stats (scroll-triggered count-up), testimonials, dark CTA panel, multi-column footer
+- Auth system — signup/login with email confirmation, `proxy.ts` guard (redirects authenticated users from `/` to `/dashboard`), cookie-based sessions
 - Auth callback handler at `/auth/callback`
 - 10-table Supabase schema with RLS, triggers, and seed data
 - Characters seeded: Leo & Mia (identical system prompts, Hungarian descriptions)
+- SVG logos: `cognimo-wordmark.svg` (Cogni+violet + mo+dark) and `cognimo-icon.svg` (faceted diamond/gem)
 
 **Login page:**
-- Split layout: dark brand panel (logo + tagline + decorative elements) on desktop, form on right
+- Full dark background (`bg-zinc-950`) with glowing orbs, floating decorations, and bubbles
+- Centered white card with gradient "Cogni"+"mo" logo above form on mobile
+- Split layout preserved on desktop (brand panel left, form right)
 - Tab toggle with sliding indicator (Belépés / Regisztráció)
 - Monochrome SVG icons for email, password, show/hide
 - Password reveal toggle
 - Banner-style error/success messages with icons
-- Mobile responsive — brand panel stacks above form
 
 **Subjects & Topics:**
 - 3 global subjects (Matematika, Történelem, Irodalom) with logo colors — clickable cards
@@ -120,9 +122,10 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 **Component:**
 - `ConfirmModal` — reusable modal with backdrop dismiss, focus rings, danger/default variants
-- `Header` — auth-aware global header
+- `Header` — auth-aware global header (hidden on `/`, `/login`, `/setup-profile`)
+- `AnimatedStats` — scroll-triggered count-up with IntersectionObserver + requestAnimationFrame + easeOutExpo
 
-### In Progress — Phase 2 Task 4 (AI Chat UI)
+### Next — Phase 2 Task 4 (AI Chat UI)
 
 - **4a:** Chat message component with streaming renderer, message history pagination
 - **4b:** Three-phase session manager (exercises → reverse teaching → quiz)
@@ -154,8 +157,8 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 | Route | Status | Description |
 |-------|--------|-------------|
-| `/` | ✅ | Landing page |
-| `/login` | ✅ | Login / Signup (split layout) |
+| `/` | ✅ | Landing page (authenticated users redirected to `/dashboard`) |
+| `/login` | ✅ | Login / Signup (dark full bg with orbs, centered card) |
 | `/auth/callback` | ✅ | Email confirmation handler |
 | `/setup-profile` | ✅ | Username + AI persona setup |
 | `/dashboard` | ✅ | Dashboard with continue-learning cards, quick nav, stats |
@@ -186,6 +189,10 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 2. `migration_global_subjects.sql` — removed user_id, seeded 3 global subjects, updated RLS
 3. Phase 2 setup — ensured topics table, added topic_id to study_materials, added preferred_character_id to profiles
 4. Leo/Mia descriptions localized to Hungarian; redundant characters removed
+5. Rebranded Study AI → Cognimo across all files; added wordmark + icon SVGs
+6. Landing page redesign — dark hero with orbs, animated stats, testimonials, multi-column footer
+7. Login page redesign — full dark bg with floating decorations, centered card
+8. Site-wide style unification — card/input/button conventions, global header with auth state
 
 ## Getting Started
 
