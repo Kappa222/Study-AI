@@ -9,11 +9,12 @@ export default function Home() {
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
           Tölts fel tananyagot, chatelj az AI-jal, generálj kvízeket, és kövesd nyomon a fejlődésed — minden egy helyen.
         </p>
-        <span
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-8 text-base font-medium text-white dark:bg-white dark:text-zinc-900"
+        <a
+          href="/login"
+          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-8 text-base font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
-          Hamarosan...
-        </span>
+          Kezdj el tanulni
+        </a>
       </section>
 
       {/* How it works */}
@@ -85,11 +86,12 @@ export default function Home() {
         <p className="mt-4 text-zinc-600 dark:text-zinc-400">
           Csatlakozz, és fedezd fel, milyen egyszerű lehet az AI-al támogatott tanulás.
         </p>
-        <span
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-8 text-base font-medium text-white dark:bg-white dark:text-zinc-900"
+        <a
+          href="/login"
+          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-8 text-base font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
-          Hamarosan...
-        </span>
+          Kezdj el tanulni
+        </a>
       </section>
 
       {/* Footer */}
