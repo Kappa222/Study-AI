@@ -14,11 +14,19 @@ export default function SettingsPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    loadData();
+    initPage();
   }, []);
+
+  const initPage = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { window.location.href = "/login"; return; }
+    await loadData();
+    setPageLoading(false);
+  };
 
   const loadData = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -71,6 +79,17 @@ export default function SettingsPage() {
     await supabase.auth.signOut();
     window.location.href = "/login";
   };
+
+  if (pageLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-accent" />
+          <p className="text-sm text-zinc-500">Betöltés...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">

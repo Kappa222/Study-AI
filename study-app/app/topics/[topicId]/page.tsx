@@ -33,25 +33,39 @@ export default function TopicDetailPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("Tanulj");
   const [sessionCount, setSessionCount] = useState(0);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    loadData();
+    initPage();
   }, [topicId]);
 
+  const initPage = async () => {
+    setPageLoading(true);
+    setError("");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { window.location.href = "/login"; return; }
+
+    await loadData();
+    setPageLoading(false);
+  };
+
   const loadData = async () => {
-    const { data: t } = await supabase
+    const { data: t, error: topicErr } = await supabase
       .from("topics")
       .select("*")
       .eq("id", topicId)
       .single();
-    if (!t) return;
+    if (topicErr) { setError("Nem sikerült betölteni a témát."); return; }
     setTopic(t);
 
-    const { data: s } = await supabase
+    const { data: s, error: subjErr } = await supabase
       .from("subjects")
       .select("id, name")
       .eq("id", t.subject_id)
       .single();
+    if (subjErr) { setError("Nem sikerült betölteni a tantárgyat."); return; }
     if (s) setSubject(s);
 
     const { data: m } = await supabase
@@ -68,11 +82,32 @@ export default function TopicDetailPage() {
     if (count !== null) setSessionCount(count);
   };
 
-  if (!topic || !subject) {
+  if (pageLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-zinc-500">Betöltés...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-accent" />
+          <p className="text-sm text-zinc-500">Betöltés...</p>
+        </div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error}</p>
+          <button
+            onClick={() => initPage()}
+            className="mt-4 rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700"
+          >
+            Újra
+          </button>
+        </div>
+      </div>
+    );
+  }
     );
   }
 

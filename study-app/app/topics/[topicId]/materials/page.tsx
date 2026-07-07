@@ -29,26 +29,41 @@ export default function MaterialsPage() {
   const [content, setContent] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    loadData();
+    initPage();
   }, [topicId]);
 
+  const initPage = async () => {
+    setPageLoading(true);
+    setError("");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { window.location.href = "/login"; return; }
+
+    await loadData();
+    setPageLoading(false);
+  };
+
   const loadData = async () => {
-    const { data: t } = await supabase
+    const { data: t, error: topicErr } = await supabase
       .from("topics")
       .select("id, name, subject_id")
       .eq("id", topicId)
       .single();
+    if (topicErr) { setError("Nem sikerült betölteni a témát."); return; }
     if (t) setTopic(t);
 
-    const { data: m } = await supabase
+    const { data: m, error: matErr } = await supabase
       .from("study_materials")
       .select("*")
       .eq("topic_id", topicId)
       .order("created_at", { ascending: false });
+    if (matErr) { setError("Nem sikerült betölteni a tananyagokat."); return; }
     if (m) setMaterials(m);
   };
 
@@ -106,10 +121,37 @@ export default function MaterialsPage() {
     return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
   };
 
+  if (pageLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-accent" />
+          <p className="text-sm text-zinc-500">Betöltés...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error}</p>
+          <button
+            onClick={() => initPage()}
+            className="mt-4 rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700"
+          >
+            Újra
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!topic) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-zinc-500">Betöltés...</p>
+        <p className="text-zinc-500">A téma nem található.</p>
       </div>
     );
   }
@@ -117,7 +159,7 @@ export default function MaterialsPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
       <Link
-        href={`/subjects/${topic.subject_id}`}
+        href={`/topics/${topicId}`}
         className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-accent"
       >
         ← Vissza a témához

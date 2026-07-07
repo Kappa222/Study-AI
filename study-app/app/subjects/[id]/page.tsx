@@ -24,27 +24,45 @@ export default function SubjectDetailPage() {
   const [topicName, setTopicName] = useState("");
   const [topicDesc, setTopicDesc] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [error, setError] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
 
   useEffect(() => {
-    loadData();
+    initPage();
   }, [id]);
 
+  const initPage = async () => {
+    setPageLoading(true);
+    setError("");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      window.location.href = "/login";
+      return;
+    }
+
+    await loadData();
+    setPageLoading(false);
+  };
+
   const loadData = async () => {
-    const { data: subj } = await supabase
+    const { data: subj, error: subjErr } = await supabase
       .from("subjects")
       .select("id, name")
       .eq("id", id)
       .single();
+    if (subjErr) { setError("Nem sikerült betölteni a tantárgyat."); return; }
     if (subj) setSubject(subj);
 
-    const { data: tops } = await supabase
+    const { data: tops, error: topsErr } = await supabase
       .from("topics")
       .select("*")
       .eq("subject_id", id)
       .order("created_at", { ascending: false });
+    if (topsErr) { setError("Nem sikerült betölteni a témákat."); return; }
     if (tops) setTopics(tops);
   };
 
@@ -94,10 +112,29 @@ export default function SubjectDetailPage() {
     await loadData();
   };
 
-  if (!subject) {
+  if (pageLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-zinc-500">Betöltés...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-accent" />
+          <p className="text-sm text-zinc-500">Betöltés...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error}</p>
+          <button
+            onClick={() => initPage()}
+            className="mt-4 rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700"
+          >
+            Újra
+          </button>
+        </div>
       </div>
     );
   }

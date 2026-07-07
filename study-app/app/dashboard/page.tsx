@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 const links = [
-  { title: "Tárgyak", desc: "Tantárgyak kezelése", href: "/subjects", icon: "📚" },
+  { title: "Tárgyak", desc: "Válassz tantárgyat", href: "/subjects", icon: "📚" },
   { title: "AI Chat", desc: "Tanulj Leo-val vagy Mia-val", href: "/subjects", icon: "💬" },
-  { title: "Tananyagok", desc: "PDF és jegyzetek", href: "/materials", icon: "📄" },
-  { title: "Kvízek", desc: "Teszteld a tudásod", href: "/quiz", icon: "📝" },
-  { title: "Haladás", desc: "Statisztikák és XP", href: "/progress", icon: "📊" },
+  { title: "Tananyagok", desc: "PDF és szöveges jegyzetek", href: "/subjects", icon: "📄" },
+  { title: "Kvízek", desc: "Teszteld a tudásod", href: "/subjects", icon: "📝" },
+  { title: "Haladás", desc: "Statisztikák és XP", href: "/subjects", icon: "📊" },
 ];
 
 export default function DashboardPage() {
@@ -65,7 +65,7 @@ export default function DashboardPage() {
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {links.map((link) => (
           <a
-            key={link.href}
+            key={link.title}
             href={link.href}
             className="group flex flex-col gap-3 rounded-xl border border-zinc-200 p-6 transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg dark:border-zinc-800 dark:hover:border-accent/40"
           >
