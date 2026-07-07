@@ -45,7 +45,9 @@ export default function DashboardPage() {
     <div className="mx-auto flex min-h-screen max-w-4xl flex-col px-6 py-12">
       <header className="mb-12 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Study AI</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            <span className="text-accent">Study</span> AI
+          </h1>
           {username && (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Szia, {username}!
@@ -54,7 +56,7 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={logout}
-          className="text-sm text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
+          className="rounded-lg px-3 py-1.5 text-sm text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
         >
           Kijelentkezés
         </button>
@@ -65,10 +67,12 @@ export default function DashboardPage() {
           <a
             key={link.href}
             href={link.href}
-            className="flex flex-col gap-2 rounded-xl border border-zinc-200 p-6 transition-colors hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+            className="group flex flex-col gap-3 rounded-xl border border-zinc-200 p-6 transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg dark:border-zinc-800 dark:hover:border-accent/40"
           >
-            <span className="text-2xl">{link.icon}</span>
-            <span className="text-lg font-semibold">{link.title}</span>
+            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-violet-50 text-xl transition-colors group-hover:bg-accent/10 dark:bg-violet-950/50 dark:group-hover:bg-accent/20">
+              {link.icon}
+            </span>
+            <span className="text-lg font-semibold group-hover:text-accent transition-colors">{link.title}</span>
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
               {link.desc}
             </span>

@@ -47,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 dark:bg-black">
-      <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="mb-6 text-2xl font-bold">
           {mode === "login" ? "Belépés" : "Regisztráció"}
         </h1>
@@ -57,7 +57,7 @@ export default function LoginPage() {
             type="email"
             placeholder="Email"
             required
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-accent/30"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -65,7 +65,7 @@ export default function LoginPage() {
             type="password"
             placeholder="Jelszó"
             required
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-accent/30"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -73,7 +73,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-zinc-900 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="rounded-lg bg-accent py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md disabled:opacity-50"
           >
             {loading
               ? "Küldés..."
@@ -94,7 +94,7 @@ export default function LoginPage() {
             setMode(mode === "login" ? "signup" : "login");
             setMessage("");
           }}
-          className="mt-4 text-sm text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
+          className="mt-4 text-sm text-zinc-500 underline underline-offset-2 transition-colors hover:text-accent dark:hover:text-accent-light"
         >
           {mode === "login"
             ? "Nincs még fiókod? Regisztrálj"
