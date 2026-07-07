@@ -108,8 +108,8 @@ export default function TopicDetailPage() {
       </div>
     );
   }
-    );
-  }
+
+  if (!topic || !subject) return null;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -156,7 +156,7 @@ export default function TopicDetailPage() {
       </div>
 
       {activeTab === "Tanulj" && (
-        <div className="flex flex-col gap-6">
+        <div key="tanulj" className="flex flex-col gap-6 animate-fade-in-up">
           {materials.length > 0 && (
             <div>
               <h2 className="mb-3 text-sm font-semibold text-zinc-500 uppercase tracking-wide">
@@ -194,14 +194,14 @@ export default function TopicDetailPage() {
       )}
 
       {activeTab === "Kvíz" && (
-        <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
+        <div key="kviz" className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700 animate-fade-in-up">
           <p className="mb-1 text-zinc-500">Kvíz funkció</p>
           <p className="text-xs text-zinc-400">Hamarosan elérhető...</p>
         </div>
       )}
 
       {activeTab === "Statisztika" && (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div key="statisztika" className="grid gap-4 sm:grid-cols-3 animate-fade-in-up">
           <div className="rounded-xl border border-zinc-200 p-6 text-center dark:border-zinc-800">
             <p className="text-2xl font-bold text-accent">{sessionCount}</p>
             <p className="mt-1 text-xs text-zinc-500">Chat szekciók</p>

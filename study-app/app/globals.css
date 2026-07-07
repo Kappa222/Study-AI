@@ -32,6 +32,58 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes slideDown {
+  from { grid-template-rows: 0fr; opacity: 0; }
+  to { grid-template-rows: 1fr; opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-skeleton {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::selection {
+  background: #7c3aed;
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
 }

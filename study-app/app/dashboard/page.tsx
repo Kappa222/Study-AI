@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import ConfirmModal from "../components/ConfirmModal";
 
 const links = [
   { title: "Tárgyak", desc: "Válassz tantárgyat", href: "/subjects", icon: "📚" },
@@ -13,6 +14,7 @@ const links = [
 
 export default function DashboardPage() {
   const [username, setUsername] = useState("");
+  const [showLogout, setShowLogout] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -36,7 +38,7 @@ export default function DashboardPage() {
     });
   }, []);
 
-  const logout = async () => {
+  const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/login";
   };
@@ -54,20 +56,29 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
-        <button
-          onClick={logout}
-          className="rounded-lg px-3 py-1.5 text-sm text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
-        >
-          Kijelentkezés
-        </button>
+        <div className="flex items-center gap-3">
+          <a
+            href="/settings"
+            className="text-sm text-zinc-500 transition-colors hover:text-accent"
+          >
+            ⚙️
+          </a>
+          <button
+            onClick={() => setShowLogout(true)}
+            className="rounded-lg px-3 py-1.5 text-sm text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
+          >
+            Kijelentkezés
+          </button>
+        </div>
       </header>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {links.map((link) => (
+        {links.map((link, i) => (
           <a
             key={link.title}
             href={link.href}
-            className="group flex flex-col gap-3 rounded-xl border border-zinc-200 p-6 transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg dark:border-zinc-800 dark:hover:border-accent/40"
+            className="group flex flex-col gap-3 rounded-xl border border-zinc-200 p-6 transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg dark:border-zinc-800 dark:hover:border-accent/40 animate-fade-in-up"
+            style={{ animationDelay: `${i * 0.08}s` }}
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-violet-50 text-xl transition-colors group-hover:bg-accent/10 dark:bg-violet-950/50 dark:group-hover:bg-accent/20">
               {link.icon}
@@ -79,6 +90,17 @@ export default function DashboardPage() {
           </a>
         ))}
       </div>
+
+      <ConfirmModal
+        open={showLogout}
+        title="Kijelentkezés"
+        message="Biztosan ki szeretnél jelentkezni?"
+        confirmLabel="Kijelentkezés"
+        cancelLabel="Mégse"
+        variant="danger"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogout(false)}
+      />
     </div>
   );
 }

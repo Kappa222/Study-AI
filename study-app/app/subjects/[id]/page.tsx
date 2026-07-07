@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
+import ConfirmModal from "../../components/ConfirmModal";
 
 interface Subject {
   id: string;
@@ -29,6 +30,7 @@ export default function SubjectDetailPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [deleteTopicId, setDeleteTopicId] = useState<string | null>(null);
 
   useEffect(() => {
     initPage();
@@ -106,9 +108,10 @@ export default function SubjectDetailPage() {
     }
   };
 
-  const handleDeleteTopic = async (topicId: string) => {
-    if (!window.confirm("Biztosan törlöd ezt a témát?")) return;
-    await supabase.from("topics").delete().eq("id", topicId);
+  const handleDeleteTopic = async () => {
+    if (!deleteTopicId) return;
+    await supabase.from("topics").delete().eq("id", deleteTopicId);
+    setDeleteTopicId(null);
     await loadData();
   };
 
@@ -138,6 +141,8 @@ export default function SubjectDetailPage() {
       </div>
     );
   }
+
+  if (!subject) return null;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -287,7 +292,7 @@ export default function SubjectDetailPage() {
                     ✏️
                   </button>
                   <button
-                    onClick={() => handleDeleteTopic(topic.id)}
+                    onClick={() => setDeleteTopicId(topic.id)}
                     className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-950/50"
                   >
                     🗑️
@@ -298,6 +303,15 @@ export default function SubjectDetailPage() {
           </div>
         ))}
       </div>
+
+      <ConfirmModal
+        open={!!deleteTopicId}
+        title="Téma törlése"
+        message="Biztosan törlöd ezt a témát? Ez a művelet nem vonható vissza."
+        confirmLabel="Törlés"
+        onConfirm={handleDeleteTopic}
+        onCancel={() => setDeleteTopicId(null)}
+      />
     </div>
   );
 }

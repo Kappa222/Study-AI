@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
+import ConfirmModal from "../components/ConfirmModal";
 
 interface Character {
   id: string;
@@ -16,6 +18,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
 
   useEffect(() => {
     initPage();
@@ -75,7 +78,8 @@ export default function SettingsPage() {
     setLoading(false);
   };
 
-  const logout = async () => {
+  const handleLogout = async () => {
+    setShowLogout(false);
     await supabase.auth.signOut();
     window.location.href = "/login";
   };
@@ -93,6 +97,12 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
+      <Link
+        href="/dashboard"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-accent"
+      >
+        ← Vissza a dashboardra
+      </Link>
       <h1 className="mb-8 text-2xl font-bold tracking-tight">Beállítások</h1>
 
       <form onSubmit={handleSave} className="flex flex-col gap-8">
@@ -150,13 +160,24 @@ export default function SettingsPage() {
           )}
           <button
             type="button"
-            onClick={logout}
+            onClick={() => setShowLogout(true)}
             className="ml-auto rounded-lg px-4 py-2 text-sm text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
           >
             Kijelentkezés
           </button>
         </div>
       </form>
+
+      <ConfirmModal
+        open={showLogout}
+        title="Kijelentkezés"
+        message="Biztosan ki szeretnél jelentkezni?"
+        confirmLabel="Kijelentkezés"
+        cancelLabel="Mégse"
+        variant="danger"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogout(false)}
+      />
     </div>
   );
 }

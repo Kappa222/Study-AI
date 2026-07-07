@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../../lib/supabase";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 interface Material {
   id: string;
@@ -32,6 +33,7 @@ export default function MaterialsPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteMatId, setDeleteMatId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -110,9 +112,10 @@ export default function MaterialsPage() {
     setLoading(false);
   };
 
-  const handleDelete = async (materialId: string) => {
-    if (!window.confirm("Biztosan törlöd ezt a tananyagot?")) return;
-    await fetch(`/api/materials/${materialId}`, { method: "DELETE" });
+  const handleDelete = async () => {
+    if (!deleteMatId) return;
+    await fetch(`/api/materials/${deleteMatId}`, { method: "DELETE" });
+    setDeleteMatId(null);
     await loadData();
   };
 
@@ -301,22 +304,39 @@ export default function MaterialsPage() {
                     </a>
                   ) : null}
                   <button
-                    onClick={() => handleDelete(material.id)}
+                    onClick={() => setDeleteMatId(material.id)}
                     className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-950/50"
                   >
                     🗑️
                   </button>
                 </div>
               </div>
-              {expandedId === material.id && material.content && (
-                <div className="mt-1 rounded-b-xl border-x border-b border-zinc-200 bg-zinc-50 p-4 text-sm leading-relaxed whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-900/50">
-                  {material.content}
+              <div
+                className={`grid transition-all duration-300 ${
+                  expandedId === material.id && material.content
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="mt-1 rounded-b-xl border-x border-b border-zinc-200 bg-zinc-50 p-4 text-sm leading-relaxed whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-900/50">
+                    {material.content}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        open={!!deleteMatId}
+        title="Tananyag törlése"
+        message="Biztosan törlöd ezt a tananyagot? Ez a művelet nem vonható vissza."
+        confirmLabel="Törlés"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteMatId(null)}
+      />
     </div>
   );
 }
