@@ -47,10 +47,14 @@
   - Quiz phase: AI generates questions from materials, results saved to `quiz_attempts`
   - Phase transition logic (auto-advance + manual confirm)
   - Phase indicator in chat header
-- **4c — Horizontal progress roadmap with bubbles**
-  - Completed (accent filled) / current (pulsing) / locked (muted) states
-  - Tap any completed bubble to redo that phase
-  - Tap current bubble to continue from where they left off
+- **4c — Horizontal progress roadmap with islands** ✅ (UI only, hardcoded)
+  - 7 islands: 3 exercises, 3 teaching, 1 quiz
+  - Completed (accent filled + checkmark) / current (avatar + pulsing ring) / locked (muted + lock icon) states
+  - Left/right arrow buttons to pan viewport (~5 islands visible at a time)
+  - User's avatar (male/female) stands on current island
+  - Phase-tinted background zones (violet/blue/amber) with labels
+  - "Kezdés"/"Folytatás" button below
+  - **Not yet wired to session data** — hardcoded to checkpoint 0
 - **4d — Session lifecycle**
   - Create/attach session to topic + user's preferred character
   - Checkpoints saved after each exercise — quitting mid-exercise restarts that one
@@ -59,6 +63,11 @@
   - Send topic's study materials as system context
   - Read `preferred_character_id` from profile for persona selection
   - AI provider fallback: retry with GPT-4o (via OpenAI SDK) if Groq fails or times out
+
+### Task 5 — User Avatar Selection ✅ (replaces Task 5 — Persona Selection)
+- Male/female avatar SVGs in `public/avatars/`
+- Avatar picker on `/setup-profile` and `/settings` pages (no labels, just images)
+- Stored in `profiles.avatar_url` — learning partner (Mia) set automatically
 
 ### Task 5 — Persona Selection ✅
 - Add Leo/Mia picker to `/setup-profile` page (saves to `profiles.preferred_character_id`)

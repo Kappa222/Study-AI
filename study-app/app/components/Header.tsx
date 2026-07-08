@@ -28,8 +28,8 @@ export default function Header() {
 
   return (
     <>
-      <header className="flex items-center justify-between border-b border-zinc-200/70 px-6 py-3 dark:border-zinc-800/70">
-        <Link href="/" className="text-lg font-bold tracking-tight">
+      <header className="flex items-center justify-between border-b border-zinc-200/70 px-6 py-4 dark:border-zinc-800/70">
+        <Link href="/" className="text-2xl font-bold tracking-tight">
           <span className="text-accent">Cogni</span>mo
         </Link>
 
@@ -38,13 +38,13 @@ export default function Header() {
             <Link
               href="/settings"
               aria-label="Beállítások"
-              className="text-sm text-zinc-500 transition-colors hover:text-accent"
+              className="text-base text-zinc-500 transition-colors hover:text-accent"
             >
               ⚙️
             </Link>
             <button
               onClick={() => setShowLogout(true)}
-              className="cursor-pointer rounded-lg px-3 py-1.5 text-sm text-zinc-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-600 hover:shadow-sm active:scale-[0.98] dark:hover:bg-red-950/50 dark:hover:text-red-400"
+              className="cursor-pointer rounded-lg px-5 py-2 text-base text-zinc-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-600 hover:shadow-sm active:scale-[0.98] dark:hover:bg-red-950/50 dark:hover:text-red-400"
             >
               Kijelentkezés
             </button>
@@ -52,7 +52,7 @@ export default function Header() {
         ) : (
           <Link
             href="/login"
-            className="rounded-lg px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-violet-50 hover:text-accent dark:text-zinc-400 dark:hover:bg-violet-950/50 dark:hover:text-accent-light"
+            className="rounded-lg px-5 py-2 text-base text-zinc-600 transition-colors hover:bg-violet-50 hover:text-accent dark:text-zinc-400 dark:hover:bg-violet-950/50 dark:hover:text-accent-light"
           >
             Belépés
           </Link>

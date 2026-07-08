@@ -83,20 +83,20 @@ export default function LoginPage() {
 
       {/* Brand content — desktop only */}
       <div className="relative hidden w-1/2 flex-col p-16 text-white lg:flex">
-        <div className="flex flex-1 flex-col justify-center">
+          <div className="flex flex-1 flex-col justify-center">
           <div className="max-w-md">
-            <h1 className="text-5xl font-bold tracking-tight">
+            <h1 className="animate-fade-in-up text-5xl font-bold tracking-tight">
               <span className="bg-gradient-to-r from-violet-400 via-accent to-violet-300 bg-clip-text text-transparent">Cogni</span>
               <span className="text-white">mo</span>
             </h1>
-            <div className="mt-6 h-px w-16 bg-violet-400/40" />
-            <p className="mt-6 text-xl leading-relaxed text-white/70">
+            <div className="animate-fade-in-up mt-6 h-px w-16 bg-violet-400/40" style={{ animationDelay: "100ms" }} />
+            <p className="animate-fade-in-up mt-6 text-xl leading-relaxed text-white/70" style={{ animationDelay: "200ms" }}>
               A mesterséges intelligencia segítségével tanulj gyorsabban. Tölts fel tananyagot, chatelj az AI-jal, generálj kvízeket, és kövesd nyomon a fejlődésed.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-white/25">
+        <div className="animate-fade-in-up flex items-center gap-2 text-sm text-white/25" style={{ animationDelay: "300ms" }}>
           <span className="h-px flex-1 bg-white/10" />
           Inverted Teacher módszer
         </div>
@@ -107,23 +107,23 @@ export default function LoginPage() {
         <div className="w-full max-w-lg">
           {/* Mobile brand */}
           <div className="mb-6 text-center lg:hidden">
-            <h1 className="text-4xl font-bold tracking-tight">
+            <h1 className="animate-fade-in-up text-4xl font-bold tracking-tight">
               <span className="bg-gradient-to-r from-violet-400 via-accent to-violet-300 bg-clip-text text-transparent">Cogni</span>
               <span className="text-white">mo</span>
             </h1>
           </div>
 
           {/* Card */}
-          <div className="rounded-2xl border border-zinc-200/60 bg-white p-8 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
-            <h2 className="text-2xl font-semibold tracking-tight">
+          <div className="animate-fade-in-up rounded-2xl border border-zinc-200/60 bg-white p-8 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900" style={{ animationDelay: "250ms" }}>
+            <h2 className="animate-fade-in-up text-2xl font-semibold tracking-tight" style={{ animationDelay: "350ms" }}>
               {mode === "login" ? "Üdvözlünk újra" : "Hozz létre fiókot"}
             </h2>
-            <p className="mt-1.5 text-base text-zinc-500 dark:text-zinc-400">
+            <p className="animate-fade-in-up mt-1.5 text-base text-zinc-500 dark:text-zinc-400" style={{ animationDelay: "450ms" }}>
               {mode === "login" ? "Jelentkezz be a tanulás folytatásához" : "Regisztrálj, és kezdd el a tanulást"}
             </p>
 
             {/* Tab toggle with sliding indicator */}
-            <div className="relative mt-6 flex rounded-xl bg-zinc-100 dark:bg-zinc-800/60">
+            <div className="animate-fade-in-up relative mt-6 flex rounded-xl bg-zinc-100 dark:bg-zinc-800/60" style={{ animationDelay: "550ms" }}>
               <div
                 className="absolute top-0.5 bottom-0.5 w-1/2 rounded-lg bg-white shadow-sm transition-all duration-300 ease-out dark:bg-zinc-700"
                 style={{ left: mode === "login" ? "2px" : "calc(50% - 2px)" }}
@@ -142,7 +142,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+            <form onSubmit={handleSubmit} className="animate-fade-in-up mt-8 flex flex-col gap-5" style={{ animationDelay: "650ms" }}>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">

@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
+import ProgressRoadmap from "../../components/ProgressRoadmap";
+
+const ROADMAP_PHASES = [
+  { startIndex: 0, count: 3, label: "Gyakorlatok" },
+  { startIndex: 3, count: 3, label: "Tanítás" },
+  { startIndex: 6, count: 1, label: "Kvíz" },
+];
+const TOTAL_CHECKPOINTS = 7;
 
 interface Topic {
   id: string;
@@ -33,6 +41,7 @@ export default function TopicDetailPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("Tanulj");
   const [sessionCount, setSessionCount] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -47,11 +56,11 @@ export default function TopicDetailPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { window.location.href = "/login"; return; }
 
-    await loadData();
+    await loadData(user.id);
     setPageLoading(false);
   };
 
-  const loadData = async () => {
+  const loadData = async (userId?: string) => {
     const { data: t, error: topicErr } = await supabase
       .from("topics")
       .select("*")
@@ -80,6 +89,13 @@ export default function TopicDetailPage() {
       .select("*", { count: "exact", head: true })
       .eq("topic_id", topicId);
     if (count !== null) setSessionCount(count);
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", userId)
+      .single();
+    if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
   };
 
   if (pageLoading) {
@@ -129,6 +145,18 @@ export default function TopicDetailPage() {
           </p>
         )}
       </div>
+
+      {materials.length > 0 && avatarUrl && (
+        <div className="mb-10">
+          <ProgressRoadmap
+            topicName={topic.name}
+            currentCheckpoint={0}
+            totalCheckpoints={TOTAL_CHECKPOINTS}
+            phases={ROADMAP_PHASES}
+            avatarUrl={avatarUrl}
+          />
+        </div>
+      )}
 
       <div className="mb-6">
         <Link

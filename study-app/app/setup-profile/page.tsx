@@ -3,30 +3,21 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
-interface Character {
-  id: string;
-  name: string;
-  description: string;
-}
+const AVATARS = [
+  { value: "/avatars/user-female.svg" },
+  { value: "/avatars/user-male.svg" },
+];
 
 export default function SetupProfilePage() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [selectedChar, setSelectedChar] = useState<string | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(AVATARS[0].value);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) window.location.href = "/login";
     });
-
-    supabase
-      .from("characters")
-      .select("id, name, description")
-      .then(({ data }) => {
-        if (data) setCharacters(data);
-      });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,11 +29,18 @@ export default function SetupProfilePage() {
     const userId = userData.user?.id;
     if (!userId) return;
 
+    const { data: defaultChar } = await supabase
+      .from("characters")
+      .select("id")
+      .eq("is_default", true)
+      .single();
+
     const { error } = await supabase
       .from("profiles")
       .update({
         username,
-        preferred_character_id: selectedChar,
+        avatar_url: selectedAvatar,
+        preferred_character_id: defaultChar?.id,
       })
       .eq("id", userId);
 
@@ -60,7 +58,7 @@ export default function SetupProfilePage() {
       <div className="w-full max-w-md rounded-2xl border border-zinc-200/60 bg-white p-8 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
         <h1 className="mb-2 text-2xl font-bold">Üdvözlünk!</h1>
         <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
-          Válassz felhasználónevet és társat a tanuláshoz.
+          Válassz felhasználónevet és avatart.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -75,24 +73,21 @@ export default function SetupProfilePage() {
 
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Válassz tanulótársat:
+              Válassz avatart:
             </p>
             <div className="grid grid-cols-2 gap-3">
-              {characters.map((char) => (
+              {AVATARS.map((avatar) => (
                 <button
-                  key={char.id}
+                  key={avatar.value}
                   type="button"
-                  onClick={() => setSelectedChar(char.id)}
-                  className={`rounded-2xl border-2 p-4 text-left transition-all duration-200 ${
-                    selectedChar === char.id
+                  onClick={() => setSelectedAvatar(avatar.value)}
+                  className={`rounded-2xl border-2 p-6 transition-all duration-200 flex items-center justify-center ${
+                    selectedAvatar === avatar.value
                       ? "border-accent bg-violet-50 dark:bg-violet-950/30"
                       : "border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-700 dark:hover:border-zinc-600"
                   }`}
                 >
-                  <p className="text-lg font-bold">{char.name}</p>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    {char.description}
-                  </p>
+                  <img src={avatar.value} alt="" className="h-20 w-20" />
                 </button>
               ))}
             </div>
@@ -100,7 +95,7 @@ export default function SetupProfilePage() {
 
           <button
             type="submit"
-            disabled={loading || !selectedChar}
+            disabled={loading || !selectedAvatar}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all hover:bg-violet-700 hover:shadow-md disabled:opacity-50 dark:hover:bg-violet-600"
           >
             {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />}

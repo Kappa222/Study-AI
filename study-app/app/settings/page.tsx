@@ -5,16 +5,14 @@ import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 import ConfirmModal from "../components/ConfirmModal";
 
-interface Character {
-  id: string;
-  name: string;
-  description: string;
-}
+const AVATARS = [
+  { value: "/avatars/user-female.svg" },
+  { value: "/avatars/user-male.svg" },
+];
 
 export default function SettingsPage() {
   const [username, setUsername] = useState("");
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [selectedChar, setSelectedChar] = useState<string | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(AVATARS[0].value);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -38,19 +36,14 @@ export default function SettingsPage() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, preferred_character_id")
+      .select("username, avatar_url")
       .eq("id", userId)
       .single();
 
     if (profile) {
       setUsername(profile.username ?? "");
-      setSelectedChar(profile.preferred_character_id);
+      if (profile.avatar_url) setSelectedAvatar(profile.avatar_url);
     }
-
-    const { data: chars } = await supabase
-      .from("characters")
-      .select("id, name, description");
-    if (chars) setCharacters(chars);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -66,7 +59,7 @@ export default function SettingsPage() {
       .from("profiles")
       .update({
         username,
-        preferred_character_id: selectedChar,
+        avatar_url: selectedAvatar,
       })
       .eq("id", userId);
 
@@ -125,23 +118,20 @@ export default function SettingsPage() {
         </section>
 
         <section className="rounded-2xl border border-zinc-200/60 bg-white p-8 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
-          <h2 className="mb-4 text-lg font-semibold">Tanulótárs</h2>
+          <h2 className="mb-4 text-lg font-semibold">Avatar</h2>
           <div className="grid grid-cols-2 gap-3">
-            {characters.map((char) => (
+            {AVATARS.map((avatar) => (
               <button
-                key={char.id}
+                key={avatar.value}
                 type="button"
-                onClick={() => setSelectedChar(char.id)}
-                className={`rounded-xl border-2 p-4 text-left transition-all ${
-                  selectedChar === char.id
+                onClick={() => setSelectedAvatar(avatar.value)}
+                className={`rounded-2xl border-2 p-6 transition-all duration-200 flex items-center justify-center ${
+                  selectedAvatar === avatar.value
                     ? "border-accent bg-violet-50 dark:bg-violet-950/30"
                     : "border-zinc-200 hover:border-zinc-300 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-700 dark:hover:border-zinc-600"
                 }`}
               >
-                <p className="text-lg font-bold">{char.name}</p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  {char.description}
-                </p>
+                <img src={avatar.value} alt="" className="h-20 w-20" />
               </button>
             ))}
           </div>
