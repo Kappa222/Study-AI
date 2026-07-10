@@ -97,7 +97,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 | UI | Route | Screens & Components | Status |
 |---|---|---|---|
-| Learn page | `/topics/[topicId]/learn` | Interactive lesson player — AI streams explanations, runs Inverted Teacher Q&A, probes during Reverse Teaching, and administers a scored quiz. See design below | ❌ Not started |
+| Learn page | `/topics/[topicId]/learn` | Interactive lesson player — AI streams explanations, runs Inverted Teacher Q&A, probes during Reverse Teaching, and administers a scored quiz. See design below | ✅ Built (mock session flow, awaits 4b+4d wiring) |
 | Session API | `/api/sessions` | Create, resume, checkpoint save, complete | ❌ Not started |
 | Session messages API | `/api/sessions/[id]/messages` | List messages (paginated), create | ❌ Not started |
 | Chat API update | `/api/chat` | Enhanced with session context, character persona, study materials as system prompt | 📄 Needs 4e wiring |
@@ -174,14 +174,14 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 | Task | Components to Build | Status |
 |---|---|---|
-| **4a — Learn page renderer** | `LearnPage` — page wrapper, phase-aware content area, progress bar, back link, loading/error/empty states | ❌ |
-| | `AIBubble` — AI message card with avatar + name + streaming text | ❌ |
-| | `UserBubble` — user response card with text | ❌ |
-| | `ResponseInput` — text input + Küldés button, disabled during AI stream | ❌ |
-| | `QuestionPrompt` — "Van kérdésed?" with [Igen] [Nem] buttons | ❌ |
-| | `QuizQuestion` — MCQ with 4 option buttons, feedback (✅/❌), [Következő] button | ❌ |
-| | `CompletionScreen` — congratulations card with stats, XP, [Újratanulás] + [Vissza] buttons | ❌ |
-| | `ProgressBar` — simple fraction bar at top (e.g. "3/7") | ❌ |
+| **4a — Learn page renderer** | `LearnPage` — page wrapper, phase-aware content area, progress bar, back link, loading/error/empty states | ✅ |
+| | `AIBubble` — AI message card with avatar + name + streaming text | ✅ |
+| | `UserBubble` — user response card with text | ✅ |
+| | `ResponseInput` — text input + Küldés button, disabled during AI stream | ✅ |
+| | `QuestionPrompt` — "Van kérdésed?" with [Igen] [Nem] buttons | ✅ |
+| | `QuizQuestion` — MCQ with 4 option buttons, feedback (✅/❌), [Következő] button | ✅ |
+| | `CompletionScreen` — congratulations card with stats, XP, [Újratanulás] + [Vissza] buttons | ✅ |
+| | `ProgressBar` — simple fraction bar at top (e.g. "3/7") | ✅ |
 | **4b — Phase manager** | `SessionPhaseManager` — phase state machine, auto-advance logic, phase indicator | ❌ |
 | **4c — Roadmap wiring** | Wire `ProgressRoadmap` to real session.checkpoint | ✅ UI done |
 | **4d — Session lifecycle** | API routes: create session, save checkpoints, resume existing session. Checkpoint save on each completed step | ❌ |
@@ -255,7 +255,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 ## Known Issues
 
-- Learn page at `/topics/[topicId]/learn` exists with Task 4a UI components and mock session flow (not yet wired to real APIs)
+- Learn page at `/topics/[topicId]/learn` has Task 4a UI components with mock session flow; awaits 4b (phase manager) + 4d (session API) for real data wiring
 - Kvíz tab on topic detail page is a placeholder ("Hamarosan elérhető...")
 - Statisztika tab shows only basic counts (session count, material count)
 - ProgressRoadmap component is UI-only — hardcoded to checkpoint 0, awaits session system wiring
@@ -276,6 +276,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 7. Login page redesign — full dark bg with floating decorations, centered card
 8. Site-wide style unification — card/input/button conventions, global header with auth state
 9. Login page reveal animations, avatar system (male/female SVGs replacing character picker), ProgressRoadmap component, subjects page redesign, header sizing unified with landing page
+10. Task 4a built — 7 Learn page components (AIBubble, UserBubble, ResponseInput, QuestionPrompt, QuizQuestion, CompletionScreen, ProgressBar) with mock 7-step session flow at `/topics/[topicId]/learn`. Leo/Mia characters replaced with Lumi across schema, UI, docs, landing page, settings, setup-profile. Lumi avatar refined as detailed otter SVG (full-body, transparent bg, no particles). Route links updated from `/chat` → `/learn`
 
 ## Getting Started
 

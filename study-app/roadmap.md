@@ -59,7 +59,7 @@ This is the core of Cognimo — an interactive lesson player, not a chat app. Th
 - `QuizQuestion` — MCQ card with 4 option buttons, [Ellenőrzés] button, ✅/❌ indicator + correct answer, [Következő] button
 - `CompletionScreen` — "🎉 Gratulálunk!" card with stats (score, exercises completed, XP earned), [🔄 Újratanulás] and [← Vissza] buttons
 - `ProgressBar` — top bar fraction indicator (e.g. "▓▓▓▓▓░░░░ 3/7")
-- **Status:** All components built with mock session flow. Awaits 4b (phase manager) + 4d (session API) wiring.
+- **Status:** ✅ All components built with mock session flow. Awaits 4b (phase manager) + 4d (session API) wiring.
 
 #### 4b — Phase manager
 - `SessionPhaseManager` — client-side state machine: tracks current phase (explain / inverted-teacher / reverse-teaching / quiz / complete), counts progress within phase
