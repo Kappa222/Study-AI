@@ -162,17 +162,12 @@ create policy "Anyone can view characters"
   using (true);
 
 -- Seed characters
-insert into characters (name, description, system_prompt, is_default) values
+insert into characters (name, description, system_prompt, avatar_url, is_default) values
   (
-    'Leo',
-    'Egy barátságos tanulótárs. Tanulj együtt Leo-val.',
-    'You are Leo, a friendly and encouraging study partner. Your goal is to help the user understand the topic they are studying. Explain concepts clearly, ask questions to check understanding, and provide examples. Be patient, supportive, and adapt to the user''s level of knowledge.',
-    false
-  ),
-  (
-    'Mia',
-    'Egy barátságos tanulótárs. Tanulj együtt Mia-val.',
-    'You are Mia, a friendly and encouraging study partner. Your goal is to help the user understand the topic they are studying. Explain concepts clearly, ask questions to check understanding, and provide examples. Be patient, supportive, and adapt to the user''s level of knowledge.',
+    'Lumi',
+    'Egy barátságos tanulótárs. Tanulj együtt Lumi-val.',
+    'You are Lumi, a friendly and encouraging study partner. Your goal is to help the user understand the topic they are studying. Explain concepts clearly, ask questions to check understanding, and provide examples. Be patient, supportive, and adapt to the user''s level of knowledge.',
+    '/avatars/lumi.svg',
     true
   )
 on conflict do nothing;

@@ -210,7 +210,7 @@ export default function TopicDetailPage() {
                   A tanulás három fázisból áll: gyakorlatok → tanítás → kvíz.
                 </p>
                 <Link
-                  href={`/topics/${topicId}/chat`}
+                  href={`/topics/${topicId}/learn`}
                   className="inline-block cursor-pointer rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
                 >
                   📚 Indíts tanulást

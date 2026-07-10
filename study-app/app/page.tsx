@@ -92,12 +92,12 @@ const testimonials = [
   {
     initials: "BB",
     name: "Béla B.",
-    quote: "Az AI-jal való tanulás teljesen megváltoztatta a felkészülésemet. Leo segítségével sokkal mélyebben megértettem az anyagot.",
+    quote: "Az AI-jal való tanulás teljesen megváltoztatta a felkészülésemet. Lumi segítségével sokkal mélyebben megértettem az anyagot.",
   },
   {
     initials: "AK",
     name: "Anna K.",
-    quote: "A fordított tanítás módszere zseniális. Amikor Mianak magyarázom, rájövök, hogy mit nem értek igazán.",
+    quote: "A fordított tanítás módszere zseniális. Amikor Luminak magyarázom, rájövök, hogy mit nem értek igazán.",
   },
 ];
 
@@ -195,8 +195,8 @@ export default function Home() {
                   <div className="space-y-3">
                     <div className="rounded-xl bg-violet-600/15 p-3.5">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <div className="w-5 h-5 rounded-full bg-violet-500/30 flex items-center justify-center text-[10px] text-violet-300 font-semibold">M</div>
-                        <span className="text-xs font-medium text-violet-300">Mia</span>
+                        <div className="w-5 h-5 rounded-full bg-amber-400/30 flex items-center justify-center text-[10px] text-amber-300 font-semibold">L</div>
+                        <span className="text-xs font-medium text-amber-300">Lumi</span>
                       </div>
                       <p className="text-sm text-zinc-300 leading-relaxed">
                         Magyarázd el a másodfokú egyenlet megoldóképletét!
@@ -213,8 +213,8 @@ export default function Home() {
                     </div>
                     <div className="rounded-xl bg-violet-600/15 p-3.5">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <div className="w-5 h-5 rounded-full bg-violet-500/30 flex items-center justify-center text-[10px] text-violet-300 font-semibold">M</div>
-                        <span className="text-xs font-medium text-violet-300">Mia</span>
+                        <div className="w-5 h-5 rounded-full bg-amber-400/30 flex items-center justify-center text-[10px] text-amber-300 font-semibold">L</div>
+                        <span className="text-xs font-medium text-amber-300">Lumi</span>
                       </div>
                       <p className="text-sm text-zinc-300 leading-relaxed">
                         Nagyszerű! És mi a diszkrimináns szerepe?
