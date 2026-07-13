@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 interface AIBubbleProps {
   avatarUrl: string;
   characterName: string;
@@ -15,9 +17,11 @@ export default function AIBubble({
 }: AIBubbleProps) {
   return (
     <div className="flex gap-3">
-      <img
+      <Image
         src={avatarUrl}
         alt={characterName}
+        width={32}
+        height={32}
         className="h-8 w-8 rounded-full object-cover ring-2 ring-zinc-200 dark:ring-zinc-700"
       />
       <div className="max-w-[80%] rounded-2xl rounded-bl-md border border-zinc-200/60 bg-white px-4 py-3 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">

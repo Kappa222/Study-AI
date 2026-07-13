@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "../../lib/supabase";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -11,6 +13,7 @@ const AVATARS = [
 ];
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState<string>(AVATARS[0].value);
   const [loading, setLoading] = useState(false);
@@ -18,18 +21,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
 
-  useEffect(() => {
-    initPage();
-  }, []);
-
-  const initPage = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.href = "/login"; return; }
-    await loadData();
-    setPageLoading(false);
-  };
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
     if (!userId) return;
@@ -44,7 +36,19 @@ export default function SettingsPage() {
       setUsername(profile.username ?? "");
       if (profile.avatar_url) setSelectedAvatar(profile.avatar_url);
     }
-  };
+  }, []);
+
+  const initPage = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/login"); return; }
+    await loadData();
+    setPageLoading(false);
+  }, [router, loadData]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    initPage();
+  }, [initPage]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +135,7 @@ export default function SettingsPage() {
                     : "border-zinc-200 hover:border-zinc-300 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-700 dark:hover:border-zinc-600"
                 }`}
               >
-                <img src={avatar.value} alt="" className="h-20 w-20" />
+                <Image src={avatar.value} alt="" width={80} height={80} className="h-20 w-20" />
               </button>
             ))}
           </div>

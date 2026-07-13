@@ -1,5 +1,6 @@
 import { createClient } from "../../../lib/supabase-server";
 import { NextResponse } from "next/server";
+import { PDFParse } from "pdf-parse";
 
 export async function GET(req: Request) {
   const supabase = await createClient();
@@ -42,7 +43,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Hiányzó mezők" }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop();
     const filePath = `${user.id}/${topicId}/${crypto.randomUUID()}-${file.name}`;
 
     const { error: uploadError } = await supabase.storage
@@ -57,6 +57,16 @@ export async function POST(req: Request) {
       .from("materials")
       .getPublicUrl(filePath);
 
+    let extractedText = "";
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const pdfInstance = new PDFParse({ data: buffer });
+      const result = await pdfInstance.getText();
+      extractedText = result.pages.map((p: { text: string }) => p.text).join("\n\n");
+    } catch {
+      // PDF might be scanned/image-based with no extractable text
+    }
+
     const { data, error } = await supabase
       .from("study_materials")
       .insert({
@@ -66,6 +76,7 @@ export async function POST(req: Request) {
         title,
         file_url: urlData.publicUrl,
         file_type: "pdf",
+        content: extractedText || null,
       })
       .select()
       .single();

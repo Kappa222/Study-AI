@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../../lib/supabase";
 import ConfirmModal from "../../../components/ConfirmModal";
@@ -23,6 +23,7 @@ interface Topic {
 
 export default function MaterialsPage() {
   const { topicId } = useParams<{ topicId: string }>();
+  const router = useRouter();
   const [topic, setTopic] = useState<Topic | null>(null);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [tab, setTab] = useState<"text" | "pdf">("text");
@@ -37,22 +38,7 @@ export default function MaterialsPage() {
   const [justAdded, setJustAdded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    initPage();
-  }, [topicId]);
-
-  const initPage = async () => {
-    setPageLoading(true);
-    setError("");
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.href = "/login"; return; }
-
-    await loadData();
-    setPageLoading(false);
-  };
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: t, error: topicErr } = await supabase
       .from("topics")
       .select("id, name, subject_id")
@@ -68,7 +54,23 @@ export default function MaterialsPage() {
       .order("created_at", { ascending: false });
     if (matErr) { setError("Nem sikerült betölteni a tananyagokat."); return; }
     if (m) setMaterials(m);
-  };
+  }, [topicId]);
+
+  const initPage = useCallback(async () => {
+    setPageLoading(true);
+    setError("");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/login"); return; }
+
+    await loadData();
+    setPageLoading(false);
+  }, [router, loadData]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    initPage();
+  }, [initPage]);
 
   const handleTextSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

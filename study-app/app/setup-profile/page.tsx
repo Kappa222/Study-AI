@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { supabase } from "../../lib/supabase";
 
 const AVATARS = [
@@ -87,7 +88,7 @@ export default function SetupProfilePage() {
                       : "border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-700 dark:hover:border-zinc-600"
                   }`}
                 >
-                  <img src={avatar.value} alt="" className="h-20 w-20" />
+                  <Image src={avatar.value} alt="" width={80} height={80} className="h-20 w-20" />
                 </button>
               ))}
             </div>

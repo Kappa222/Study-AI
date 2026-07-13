@@ -22,10 +22,6 @@ interface Subject {
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
 
-  useEffect(() => {
-    loadSubjects();
-  }, []);
-
   const loadSubjects = async () => {
     const { data } = await supabase
       .from("subjects")
@@ -33,6 +29,11 @@ export default function SubjectsPage() {
       .in("name", SUBJECT_NAMES);
     if (data) setSubjects(data);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSubjects();
+  }, []);
 
   const sorted = SUBJECT_NAMES.map(
     (n) => subjects.find((s) => s.name === n),

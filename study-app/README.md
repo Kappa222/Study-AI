@@ -15,7 +15,7 @@ The AI plays the persona of **Lumi** (meaning "light", from "lumen") — a frien
 
 - **Framework:** Next.js 16
 - **Styling:** Tailwind v4 (violet accent `#7c3aed`, no external component libraries)
-- **AI:** Groq (llama-3.3-70b-versatile) via OpenAI-compatible SDK
+- **AI:** Groq (Llama 3.3 70B) via OpenAI-compatible SDK, with GPT-4o fallback
 - **Database:** Supabase PostgreSQL with RLS on every table
 - **Auth:** Email + password with confirmation link (cookie-based sessions via `@supabase/ssr`)
 - **Client:** `createBrowserClient` (cookies), **Server:** `createServerClient` (cookies)
@@ -28,7 +28,7 @@ The AI plays the persona of **Lumi** (meaning "light", from "lumen") — a frien
 | UI language | Hungarian throughout |
 | Auth flow | Signup → confirmation email → /setup-profile (username + AI persona) → /dashboard |
 | Auth-aware header | Shows Belépés when logged out, ⚙️+Kijelentkezés when logged in; hidden on /login and /setup-profile |
-| AI provider | Groq (free Llama 3.3 70B via OpenAI-compatible SDK) — swappable to GPT-4o with fallback |
+| AI provider | Groq (Llama 3.3 70B via OpenAI-compatible SDK) — falls back to GPT-4o on failure |
 | AI persona | Lumi (friendly study partner, meaning "light" from "lumen") |
 | Subjects | Fixed set: Matematika, Történelem, Irodalom (global, read-only, with logo colors) |
 | Topics | Per-user CRUD inside a subject |
@@ -52,15 +52,15 @@ The AI plays the persona of **Lumi** (meaning "light", from "lumen") — a frien
 
 | Table             | Key Relationships                                                | Notes                                                               |
 | ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `profiles`        | id → auth.users                                                  | Auto-created on signup via trigger, stores `preferred_character_id` |
+| `profiles`        | id → auth.users                                                  | Auto-created on signup via trigger |
 | `subjects`        | —                                                                | Global (3 seeded rows: Matematika, Történelem, Irodalom)            |
 | `topics`          | user_id → profiles, subject_id → subjects                        | Per-user CRUD                                                       |
 | `study_materials` | user_id → profiles, topic_id → topics                            | PDF (Supabase Storage) or text input                                |
 | `characters`      | —                                                                | Global (Lumi seeded, Hungarian description)                         |
-| `chat_sessions`   | user_id → profiles, topic_id → topics, character_id → characters | Resumable with checkpoints                                          |
+| `chat_sessions`   | user_id → profiles, topic_id → topics                            | Tracks `status`, `current_checkpoint`, `total_checkpoints`; resumable |
 | `chat_messages`   | session_id → chat_sessions                                       | role check (user/assistant)                                         |
 | `quiz_questions`  | user_id → profiles, subject_id → subjects                        | AI-generated                                                        |
-| `quiz_attempts`   | user_id → profiles                                               | Score tracking (needs `topic_id` migration)                         |
+| `quiz_attempts`   | user_id → profiles, topic_id → topics                            | Score tracking per topic                                             |
 | `progress_log`    | user_id → profiles                                               | Daily unique per user                                               |
 
 All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `set_user_id()` function.
@@ -89,7 +89,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `Header` | none | Auth-aware: Belépés when logged out, ⚙️+Kijelentkezés when logged in. Hidden on `/`, `/login`, `/setup-profile`. Kijelentkezés triggers inline ConfirmModal |
 | `ConfirmModal` | `open`, `title`, `message`, `confirmLabel`, `cancelLabel`, `onConfirm`, `onCancel`, `variant` | Backdrop dismiss, focus rings, danger (red) / default (accent) variants |
 | `AnimatedStats` | `stats: {value, label}[]` | IntersectionObserver + requestAnimationFrame + easeOutExpo counter animation |
-| `ProgressRoadmap` | `topicName`, `currentCheckpoint`, `totalCheckpoints`, `phases[]`, `avatarUrl` | 7 islands with avatar on current, left/right arrow nav, 3 phase tints, "Kezdés"/"Folytatás" button. **UI only, hardcoded to checkpoint 0** |
+| `ProgressRoadmap` | `topicName`, `currentCheckpoint`, `totalCheckpoints`, `phases[]`, `avatarUrl` | 7 islands with avatar on current, left/right arrow nav, 3 phase tints, "Kezdés"/"Folytatás" button. Reads real checkpoint from DB |
 
 ---
 
@@ -97,10 +97,10 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 | UI | Route | Screens & Components | Status |
 |---|---|---|---|
-| Learn page | `/topics/[topicId]/learn` | Interactive lesson player — AI streams explanations, runs Inverted Teacher Q&A, probes during Reverse Teaching, and administers a scored quiz. See design below | ✅ Built (mock session flow, awaits 4b+4d wiring) |
-| Session API | `/api/sessions` | Create, resume, checkpoint save, complete | ❌ Not started |
-| Session messages API | `/api/sessions/[id]/messages` | List messages (paginated), create | ❌ Not started |
-| Chat API update | `/api/chat` | Enhanced with session context, character persona, study materials as system prompt | 📄 Needs 4e wiring |
+| Learn page | `/topics/[topicId]/learn` | Interactive lesson player — AI streams explanations, runs Inverted Teacher Q&A, probes during Reverse Teaching, and administers a scored quiz. See design below | ✅ Built with real session flow |
+| Session API | `/api/sessions` | Create, resume, checkpoint save, complete | ✅ Built |
+| Session messages API | `/api/sessions/[id]/messages` | List messages, create | ✅ Built |
+| Chat API update | `/api/chat` | Enhanced with session context, study materials as system prompt, GPT-4o fallback | ✅ Done |
 
 #### Learn Page — Final Design (`/topics/[topicId]/learn`)
 
@@ -182,10 +182,10 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | | `QuizQuestion` — MCQ with 4 option buttons, feedback (✅/❌), [Következő] button | ✅ |
 | | `CompletionScreen` — congratulations card with stats, XP, [Újratanulás] + [Vissza] buttons | ✅ |
 | | `ProgressBar` — simple fraction bar at top (e.g. "3/7") | ✅ |
-| **4b — Phase manager** | `SessionPhaseManager` — phase state machine, auto-advance logic, phase indicator | ❌ |
-| **4c — Roadmap wiring** | Wire `ProgressRoadmap` to real session.checkpoint | ✅ UI done |
-| **4d — Session lifecycle** | API routes: create session, save checkpoints, resume existing session. Checkpoint save on each completed step | ❌ |
-| **4e — AI context wiring** | Inject study materials as system prompt, read `preferred_character_id`, Groq → GPT-4o fallback | ❌ |
+| **4b — Phase manager** | `useSessionPhaseManager` hook — phase state machine, auto-advance logic, phase badge, resume support | ✅ |
+| **4c — Roadmap wiring** | Wire `ProgressRoadmap` to real session.checkpoint | ✅ Wired to real session data |
+| **4d — Session lifecycle** | API routes: create session, save checkpoints, resume existing session. Checkpoint save on each completed step | ✅ |
+| **4e — AI context wiring** | Inject study materials + Lumi persona as system prompt, Groq → GPT-4o fallback | ✅ |
 
 ---
 
@@ -245,22 +245,23 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `/subjects/[id]`              | ✅     | Subject detail with topic CRUD                                |
 | `/topics/[topicId]`           | ✅     | Topic detail (Tanulj / Kvíz / Statisztika tabs)               |
 | `/topics/[topicId]/materials` | ✅     | Study materials (text + PDF upload)                           |
-| `/topics/[topicId]/learn`     | ✅     | Phase 2 — Interactive lesson player (AI explains → Inverted Teacher → Reverse Teaching → Quiz → Results, mock data wired) |
+| `/topics/[topicId]/learn`     | ✅     | Phase 2 — Interactive lesson player (AI explains → Inverted Teacher → Reverse Teaching → Quiz → Results, real session flow) |
 | `/topics/[topicId]/quiz`      | ❌     | Phase 3 — Standalone quiz (MCQ with instant feedback, score summary) |
 | `/settings`                   | ✅     | Profile editing, persona change, logout                       |
-| `/api/chat`                   | ✅     | Groq streaming API (basic, needs session+topic context)       |
+| `/api/chat`                   | ✅     | Groq streaming with session context + study materials + GPT-4o fallback |
+| `/api/sessions`               | ✅     | POST (create) + GET ?topic_id= (find latest in-progress)      |
+| `/api/sessions/[id]`          | ✅     | GET (session + messages)                                       |
+| `/api/sessions/[id]/checkpoint` | ✅   | PUT (update current_checkpoint)                                |
+| `/api/sessions/[id]/messages` | ✅     | POST (save message)                                            |
 | `/api/materials`              | ✅     | GET (list by topic) + POST (text JSON or PDF FormData)        |
 | `/api/materials/[id]`         | ✅     | DELETE material + storage file                                |
 | `/api/topics`                 | ✅     | GET (list by subject) + POST (create) + PUT (edit) + DELETE   |
 
 ## Known Issues
 
-- Learn page at `/topics/[topicId]/learn` has Task 4a UI components with mock session flow; awaits 4b (phase manager) + 4d (session API) for real data wiring
 - Kvíz tab on topic detail page is a placeholder ("Hamarosan elérhető...")
 - Statisztika tab shows only basic counts (session count, material count)
-- ProgressRoadmap component is UI-only — hardcoded to checkpoint 0, awaits session system wiring
-- Quiz tables (`quiz_questions`, `quiz_attempts`) need `topic_id` column migration
-- No session API exists — `/api/chat` is standalone, no session context
+- Quiz questions are hardcoded mock data (Phase 3 Task 1 — AI-generated quizzes)
 - No error boundaries — API failures show raw errors or silent fails
 - No loading skeletons — spinner-only loading states
 - No mobile responsiveness audit done yet
@@ -277,6 +278,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 8. Site-wide style unification — card/input/button conventions, global header with auth state
 9. Login page reveal animations, avatar system (male/female SVGs replacing character picker), ProgressRoadmap component, subjects page redesign, header sizing unified with landing page
 10. Task 4a built — 7 Learn page components (AIBubble, UserBubble, ResponseInput, QuestionPrompt, QuizQuestion, CompletionScreen, ProgressBar) with mock 7-step session flow at `/topics/[topicId]/learn`. Leo/Mia characters replaced with Lumi across schema, UI, docs, landing page, settings, setup-profile. Lumi avatar refined as detailed otter SVG (full-body, transparent bg, no particles). Route links updated from `/chat` → `/learn`
+11. Tasks 4b-4e built — `useSessionPhaseManager` hook, session lifecycle API (`POST/GET /api/sessions`, `GET /api/sessions/[id]`, `PUT /api/sessions/[id]/checkpoint`, `POST /api/sessions/[id]/messages`), `/api/chat` enhanced with study materials + Lumi persona + GPT-4o fallback, learn page wired to real API, ProgressRoadmap reads real checkpoint, PDF text extraction on upload via `pdf-parse`. Migration `003_session_checkpoints.sql` added checkpoint columns + `topic_id` on quiz tables
 
 ## Getting Started
 

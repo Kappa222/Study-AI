@@ -186,6 +186,10 @@ create table chat_sessions (
   character_id uuid references characters(id),
   method text not null default 'study',
   title text,
+  current_checkpoint int not null default 0,
+  total_checkpoints int not null default 7,
+  status text not null default 'in_progress'
+    check (status in ('in_progress', 'completed', 'abandoned')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -198,6 +202,7 @@ create policy "Users can CRUD their own chat sessions"
 
 create index idx_chat_sessions_user_id on chat_sessions(user_id);
 create index idx_chat_sessions_subject_id on chat_sessions(subject_id);
+create index idx_chat_sessions_topic_id on chat_sessions(topic_id);
 
 drop trigger if exists trg_chat_sessions_user_id on chat_sessions;
 create trigger trg_chat_sessions_user_id
@@ -247,6 +252,7 @@ create table quiz_questions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
   subject_id uuid not null references subjects(id) on delete cascade,
+  topic_id uuid references topics(id) on delete cascade,
   material_id uuid references study_materials(id) on delete set null,
   question text not null,
   options jsonb not null,
@@ -262,6 +268,7 @@ create policy "Users can CRUD their own quiz questions"
 
 create index idx_quiz_questions_user_id on quiz_questions(user_id);
 create index idx_quiz_questions_subject_id on quiz_questions(subject_id);
+create index idx_quiz_questions_topic_id on quiz_questions(topic_id);
 
 drop trigger if exists trg_quiz_questions_user_id on quiz_questions;
 create trigger trg_quiz_questions_user_id
@@ -276,6 +283,7 @@ create table quiz_attempts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
   subject_id uuid not null references subjects(id) on delete cascade,
+  topic_id uuid references topics(id) on delete cascade,
   score integer not null,
   total_questions integer not null,
   created_at timestamptz not null default now()
@@ -288,6 +296,7 @@ create policy "Users can CRUD their own quiz attempts"
   using (auth.uid() = user_id);
 
 create index idx_quiz_attempts_user_id on quiz_attempts(user_id);
+create index idx_quiz_attempts_topic_id on quiz_attempts(topic_id);
 
 drop trigger if exists trg_quiz_attempts_user_id on quiz_attempts;
 create trigger trg_quiz_attempts_user_id

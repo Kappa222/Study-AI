@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
 import ProgressRoadmap from "../../components/ProgressRoadmap";
@@ -36,31 +36,18 @@ type Tab = (typeof tabs)[number];
 
 export default function TopicDetailPage() {
   const { topicId } = useParams<{ topicId: string }>();
+  const router = useRouter();
   const [topic, setTopic] = useState<Topic | null>(null);
   const [subject, setSubject] = useState<Subject | null>(null);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("Tanulj");
   const [sessionCount, setSessionCount] = useState(0);
+  const [currentCheckpoint, setCurrentCheckpoint] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    initPage();
-  }, [topicId]);
-
-  const initPage = async () => {
-    setPageLoading(true);
-    setError("");
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.href = "/login"; return; }
-
-    await loadData(user.id);
-    setPageLoading(false);
-  };
-
-  const loadData = async (userId?: string) => {
+  const loadData = useCallback(async (userId?: string) => {
     const { data: t, error: topicErr } = await supabase
       .from("topics")
       .select("*")
@@ -90,13 +77,39 @@ export default function TopicDetailPage() {
       .eq("topic_id", topicId);
     if (count !== null) setSessionCount(count);
 
+    const { data: latestSession } = await supabase
+      .from("chat_sessions")
+      .select("current_checkpoint")
+      .eq("topic_id", topicId)
+      .eq("status", "in_progress")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .single();
+    if (latestSession) setCurrentCheckpoint(latestSession.current_checkpoint);
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("avatar_url")
       .eq("id", userId)
       .single();
     if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
-  };
+  }, [topicId]);
+
+  const initPage = useCallback(async () => {
+    setPageLoading(true);
+    setError("");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/login"); return; }
+
+    await loadData(user.id);
+    setPageLoading(false);
+  }, [router, loadData]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    initPage();
+  }, [initPage]);
 
   if (pageLoading) {
     return (
@@ -150,7 +163,7 @@ export default function TopicDetailPage() {
         <div className="mb-10">
           <ProgressRoadmap
             topicName={topic.name}
-            currentCheckpoint={0}
+            currentCheckpoint={currentCheckpoint}
             totalCheckpoints={TOTAL_CHECKPOINTS}
             phases={ROADMAP_PHASES}
             avatarUrl={avatarUrl}

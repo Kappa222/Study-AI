@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AnimatedStats from "./components/AnimatedStats";
 
 const steps = [
@@ -345,7 +346,7 @@ export default function Home() {
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Termék</h4>
               <ul className="mt-3 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <li><a href="/subjects" className="transition-colors hover:text-accent">Tantárgyak</a></li>
+                <li><Link href="/subjects" className="transition-colors hover:text-accent">Tantárgyak</Link></li>
                 <li><span className="cursor-default">Tananyagok</span></li>
                 <li><span className="cursor-default">Kvízek</span></li>
               </ul>

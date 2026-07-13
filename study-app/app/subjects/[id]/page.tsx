@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
 import ConfirmModal from "../../components/ConfirmModal";
@@ -19,6 +19,7 @@ interface Topic {
 
 export default function SubjectDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [subject, setSubject] = useState<Subject | null>(null);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -32,25 +33,7 @@ export default function SubjectDetailPage() {
   const [editDesc, setEditDesc] = useState("");
   const [deleteTopicId, setDeleteTopicId] = useState<string | null>(null);
 
-  useEffect(() => {
-    initPage();
-  }, [id]);
-
-  const initPage = async () => {
-    setPageLoading(true);
-    setError("");
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
-
-    await loadData();
-    setPageLoading(false);
-  };
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: subj, error: subjErr } = await supabase
       .from("subjects")
       .select("id, name")
@@ -66,7 +49,26 @@ export default function SubjectDetailPage() {
       .order("created_at", { ascending: false });
     if (topsErr) { setError("Nem sikerült betölteni a témákat."); return; }
     if (tops) setTopics(tops);
-  };
+  }, [id]);
+
+  const initPage = useCallback(async () => {
+    setPageLoading(true);
+    setError("");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    await loadData();
+    setPageLoading(false);
+  }, [router, loadData]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    initPage();
+  }, [initPage]);
 
   const handleCreateTopic = async (e: React.FormEvent) => {
     e.preventDefault();

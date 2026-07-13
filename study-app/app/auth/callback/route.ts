@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
 
   if (code) {
-    let supabaseResponse = NextResponse.redirect(`${origin}/setup-profile`);
+    const supabaseResponse = NextResponse.redirect(`${origin}/setup-profile`);
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

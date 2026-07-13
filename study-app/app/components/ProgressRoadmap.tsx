@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface PhaseSection {
   startIndex: number;
@@ -113,9 +114,11 @@ export default function ProgressRoadmap({
                   <div className="absolute -top-14 z-10">
                     <div className="relative">
                       <div className="absolute inset-0 animate-ping rounded-full bg-accent/30" style={{ animationDuration: "2s" }} />
-                      <img
+                      <Image
                         src={avatarUrl}
                         alt=""
+                        width={48}
+                        height={48}
                         className="relative h-12 w-12 drop-shadow-md"
                       />
                     </div>

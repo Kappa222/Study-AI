@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 
 interface Session {
@@ -15,6 +16,17 @@ interface Session {
   subject_name: string;
 }
 
+interface SessionRow {
+  id: string;
+  status: string;
+  current_checkpoint: number;
+  total_checkpoints: number;
+  updated_at: string;
+  topic_id: string;
+  topics?: { name: string } | { name: string }[];
+  subjects?: { name: string } | { name: string }[];
+}
+
 const quickLinks = [
   { title: "Tárgyak", desc: "Tantárgyak és témák", href: "/subjects", icon: "📚" },
   { title: "Tananyagok", desc: "Jegyzetek és PDF-ek", href: "/subjects", icon: "📄" },
@@ -22,36 +34,13 @@ const quickLinks = [
 ];
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
   const [stats, setStats] = useState({ topics: 0, quizzes: 0 });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    initPage();
-  }, []);
-
-  const initPage = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.href = "/login"; return; }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.username) {
-      window.location.href = "/setup-profile";
-      return;
-    }
-
-    setUsername(profile.username);
-    await loadData(user.id);
-    setLoading(false);
-  };
-
-  const loadData = async (userId: string) => {
+  const loadData = useCallback(async (userId: string) => {
     const { data: s } = await supabase
       .from("chat_sessions")
       .select(`
@@ -67,15 +56,15 @@ export default function DashboardPage() {
 
     if (s) {
       setSessions(
-        s.map((row: any) => ({
+        (s as SessionRow[]).map((row) => ({
           id: row.id,
           status: row.status,
           current_checkpoint: row.current_checkpoint,
           total_checkpoints: row.total_checkpoints,
           updated_at: row.updated_at,
           topic_id: row.topic_id,
-          topic_name: row.topics?.name ?? "",
-          subject_name: row.subjects?.name ?? "",
+          topic_name: (Array.isArray(row.topics) ? row.topics[0]?.name : row.topics?.name) ?? "",
+          subject_name: (Array.isArray(row.subjects) ? row.subjects[0]?.name : row.subjects?.name) ?? "",
         })),
       );
     }
@@ -94,7 +83,32 @@ export default function DashboardPage() {
       topics: tCount ?? 0,
       quizzes: qCount ?? 0,
     });
-  };
+  }, []);
+
+  const initPage = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/login"); return; }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.username) {
+      router.push("/setup-profile");
+      return;
+    }
+
+    setUsername(profile.username);
+    await loadData(user.id);
+    setLoading(false);
+  }, [router, loadData]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    initPage();
+  }, [initPage]);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);

@@ -59,32 +59,36 @@ This is the core of Cognimo — an interactive lesson player, not a chat app. Th
 - `QuizQuestion` — MCQ card with 4 option buttons, [Ellenőrzés] button, ✅/❌ indicator + correct answer, [Következő] button
 - `CompletionScreen` — "🎉 Gratulálunk!" card with stats (score, exercises completed, XP earned), [🔄 Újratanulás] and [← Vissza] buttons
 - `ProgressBar` — top bar fraction indicator (e.g. "▓▓▓▓▓░░░░ 3/7")
-- **Status:** ✅ All components built with mock session flow. Awaits 4b (phase manager) + 4d (session API) wiring.
+- **Status:** ✅ All components built. Wired to real session API via `useSessionPhaseManager`.
 
-#### 4b — Phase manager
-- `SessionPhaseManager` — client-side state machine: tracks current phase (explain / inverted-teacher / reverse-teaching / quiz / complete), counts progress within phase
+#### 4b — Phase manager ✅
+- `useSessionPhaseManager` hook — client-side state machine: tracks current phase (explain / inverted-teacher / reverse-teaching / quiz / complete), counts progress within phase
 - Auto-advance: Inverted Teacher and Reverse Teaching phases advance to next question automatically after AI responds
 - Explain phase: AI explains → user asked if they have questions → if [Nem], next exercise
 - Quiz phase: manual [Ellenőrzés] → feedback → manual [Következő]
 - Phase indicator: small badge in top bar showing current phase name
+- Resume support: `resumeFrom(checkpoint)` restores session state
 
-#### 4c — ProgressRoadmap wiring ✅ (UI done, hardcoded)
+#### 4c — ProgressRoadmap wiring ✅
 - 7 islands: 3 exercises, 3 teaching, 1 quiz
 - Completed (accent fill + checkmark) / current (avatar + pulsing ring) / locked (muted + lock icon)
 - Left/right arrow pan, phase-tinted backgrounds (violet/blue/amber), "Kezdés"/"Folytatás" button
-- **Needs wiring:** replace `currentCheckpoint=0` hardcode with real session data
+- Reads real `currentCheckpoint` from latest in-progress session
 
-#### 4d — Session lifecycle
-- `POST /api/sessions` — create session linked to topic + user's preferred character
+#### 4d — Session lifecycle ✅
+- `POST /api/sessions` — create session linked to topic
+- `GET /api/sessions?topic_id=` — find latest in-progress session
 - `GET /api/sessions/[id]` — resume: load session state, checkpoint, messages
 - `PUT /api/sessions/[id]/checkpoint` — save checkpoint after each completed step
 - `POST /api/sessions/[id]/messages` — save user/AI messages
 - Checkpoint granularity: saving mid-step means user restarts that one step, not the whole phase
 
-#### 4e — AI context wiring
-- Inject study materials text as system prompt suffix
-- Read `preferred_character_id` from `profiles` → use character's name (Lumi) + system_prompt (column kept for future multi-character support)
+#### 4e — AI context wiring ✅
+- Lumi system prompt hardcoded in `/api/chat` (no DB dependency)
+- Study materials injected as system prompt with explicit "use as primary source" directive
+- PDF text extraction on upload via `pdf-parse` (stored in `content` column)
 - AI provider fallback: if Groq fails/times out, retry with OpenAI SDK (GPT-4o)
+- Initial user message tells Lumi the topic name + phase on session start
 
 ### Task 5 — User Avatar Selection ✅ (replaces Task 5 — Persona Selection)
 - Male/female avatar SVGs in `public/avatars/`
@@ -109,9 +113,9 @@ This is the core of Cognimo — an interactive lesson player, not a chat app. Th
 
 ### Task 1 — Quiz Generation
 - AI generates quiz questions from a topic's study materials (final step in learning session)
-- Store in `quiz_questions` table (add `topic_id` column — needs migration)
-- Run migration on `quiz_questions` and `quiz_attempts` tables
-- Update `schema.sql` to reflect new columns
+- Store in `quiz_questions` table — `topic_id` column added ✅
+- Migration run on `quiz_questions` and `quiz_attempts` tables ✅
+- `schema.sql` updated to reflect new columns ✅
 
 ### Task 2 — Quiz UI (`/topics/[topicId]/quiz`)
 - **Reuses `QuizQuestion` component** from Phase 2 (MCQ with 4 options, feedback)
