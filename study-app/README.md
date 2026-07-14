@@ -90,6 +90,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `ConfirmModal` | `open`, `title`, `message`, `confirmLabel`, `cancelLabel`, `onConfirm`, `onCancel`, `variant` | Backdrop dismiss, focus rings, danger (red) / default (accent) variants |
 | `AnimatedStats` | `stats: {value, label}[]` | IntersectionObserver + requestAnimationFrame + easeOutExpo counter animation |
 | `ProgressRoadmap` | `topicName`, `currentCheckpoint`, `totalCheckpoints`, `phases[]`, `avatarUrl` | 7 islands with avatar on current, left/right arrow nav, 3 phase tints, "Kezdés"/"Folytatás" button. Reads real checkpoint from DB |
+| `LearningPlan` | `planText`, `isLoading`, `onConfirm`, `onBack` | Displays AI-generated learning plan with streaming text, sections, and confirm/cancel buttons. Shown once before session start |
 
 ---
 
@@ -106,8 +107,18 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│ ← Vissza       Téma neve                 ▓▓▓▓▓░░░░  3/7  │
+│ ← Vissza       Téma neve                                │
 ├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  [Phase 0 — Plan: Generated once before session]        │
+│  ┌── Lumi ──────────────────────────────────────────┐   │
+│  │  [avatar]  Lumi streams a structured learning    │   │
+│  │            plan based on study materials...       │   │
+│  └──────────────────────────────────────────────────┘   │
+│                                                          │
+│              [Elfogadom, kezdjük!]                       │
+│                                                          │
+│  ───── session begins, exercises start ─────            │
 │                                                          │
 │  [Phase 1 — Exercises: AI Explains × N]                 │
 │  ┌── Lumi ──────────────────────────────────────────┐   │
@@ -163,7 +174,8 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 #### Interaction Rules
 
 | Phase | Mode | Advance Mechanism |
-|---|---|---|
+|---|---|---|---|
+| Plan | AI analyzes materials → streams structured plan | [Elfogadom, kezdjük!] → session created, exercises begin |
 | Explain | AI streams explanation | "Van kérdésed?" → [Igen] (input opens) / [Nem] (next exercise) |
 | Inverted Teacher | AI asks → user types answer → AI responds | **Auto-advance** — next question after AI responds |
 | Reverse Teaching | AI probes → user teaches → AI responds | **Auto-advance** — next question after AI responds |
@@ -174,6 +186,9 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 | Task | Components to Build | Status |
 |---|---|---|
+| **3.5 — Plan generation** | `/api/plan` — analyzes study materials, streams structured plan via Groq (GPT-4o fallback) | ✅ |
+| | `LearningPlan` — displays streaming plan with sections, confirm/cancel buttons | ✅ |
+| | Learn page integration: first "Kezdés" generates plan → user confirms → session created with plan as first message for context | ✅ |
 | **4a — Learn page renderer** | `LearnPage` — page wrapper, phase-aware content area, progress bar, back link, loading/error/empty states | ✅ |
 | | `AIBubble` — AI message card with avatar + name + streaming text | ✅ |
 | | `UserBubble` — user response card with text | ✅ |

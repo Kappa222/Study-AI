@@ -80,8 +80,15 @@ export function useSessionPhaseManager(
   const resumeFrom = useCallback((checkpoint: number) => {
     const targetStep = SESSION_STRUCTURE.findIndex((s) => s.checkpoint === checkpoint);
     const idx = targetStep >= 0 ? targetStep : 0;
+    const step = SESSION_STRUCTURE[idx];
     setStepIndex(idx);
-    setSubPhase("waiting-response");
+    if (step?.phase === "quiz") {
+      setSubPhase("quiz-answering");
+    } else if (step?.phase === "complete") {
+      setSubPhase("complete");
+    } else {
+      setSubPhase("ai-responding");
+    }
   }, []);
 
   const goToNextStep = useCallback(() => {

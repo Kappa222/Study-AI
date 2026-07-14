@@ -34,6 +34,14 @@
 - Per-topic stats section (sessions completed, quiz scores)
 - Link subject detail page topic items to this page
 
+### Task 3.5 — Learning Plan Generation ✅
+
+- Create `/api/plan` endpoint — analyzes study materials via Groq (GPT-4o fallback), generates a structured learning plan
+- Create `LearningPlan` component — displays plan with sections, streaming cursor, confirm/cancel buttons
+- Modify learn page — first "Kezdés" click generates plan, plan streams into `LearningPlan`, user confirms → session is created with plan as first message
+- Plan is persisted as the first session message → always available as context on resume
+- On resume (existing session), plan generation is skipped — user goes straight to exercises
+
 ### Task 4 — Interactive Learning Session (`/topics/[topicId]/learn`)
 
 This is the core of Cognimo — an interactive lesson player, not a chat app. The AI drives the session through 3 phases. See README for full wireframe design.

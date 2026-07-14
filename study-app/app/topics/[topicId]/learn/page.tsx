@@ -13,6 +13,7 @@ import ResponseInput from "../../../components/ResponseInput";
 import QuestionPrompt from "../../../components/QuestionPrompt";
 import QuizQuestion from "../../../components/QuizQuestion";
 import CompletionScreen from "../../../components/CompletionScreen";
+import LearningPlan from "../../../components/LearningPlan";
 
 interface DisplayMessage {
   role: "ai" | "user";
@@ -36,9 +37,17 @@ export default function LearnPage() {
   const [quizSelected, setQuizSelected] = useState<number | undefined>();
   const [streamingText, setStreamingText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [planText, setPlanText] = useState("");
 
   const phase = useSessionPhaseManager();
   const abortRef = useRef<AbortController | null>(null);
+  const storedMessagesRef = useRef(storedMessages);
+  const hasUserRespondedRef = useRef(false);
+
+  useEffect(() => { storedMessagesRef.current = storedMessages; }, [storedMessages]);
+
+  useEffect(() => { hasUserRespondedRef.current = false; }, [phase.stepIndex]);
 
   const initPage = useCallback(async () => {
     setPageLoading(true);
@@ -138,13 +147,20 @@ export default function LearnPage() {
       }
 
       await saveMessage("assistant", fullText);
+      setStoredMessages((prev) => [...prev, { role: "assistant", content: fullText, id: "", session_id: session!.id, created_at: new Date().toISOString() }]);
       setDisplayMessages((prev) => [...prev, { role: "ai", text: fullText }]);
       setStreamingText("");
 
-      if (phase.currentStep?.phase === "explain") {
+      const stepPhase = phase.currentStep?.phase;
+      if (stepPhase === "explain") {
         phase.setSubPhase("question-prompt");
-      } else {
-        setTimeout(() => phase.goToNextStep(), 800);
+      } else if (stepPhase === "inverted-teacher" || stepPhase === "reverse-teaching") {
+        if (hasUserRespondedRef.current) {
+          hasUserRespondedRef.current = false;
+          phase.goToNextStep();
+        } else {
+          phase.setSubPhase("waiting-response");
+        }
       }
     } catch (err) {
       if ((err as Error).name === "AbortError") return;
@@ -155,8 +171,9 @@ export default function LearnPage() {
   }, [session, phase, saveMessage]);
 
   const triggerAIResponse = useCallback(async () => {
-    const apiMessages = storedMessages.length > 0
-      ? storedMessages.map((m) => ({
+    const currentMessages = storedMessagesRef.current;
+    const apiMessages = currentMessages.length > 0
+      ? currentMessages.map((m) => ({
           role: m.role === "assistant" ? "assistant" : "user",
           content: m.content,
         }))
@@ -165,20 +182,76 @@ export default function LearnPage() {
           content: `The user wants to learn about: ${topic?.name ?? "this topic"}. Start explaining based on the study materials. You are in Phase 1: Exercises — explain the topic step by step.`,
         }];
     await streamAIResponse(apiMessages);
-  }, [storedMessages, streamAIResponse, topic]);
+  }, [streamAIResponse, topic]);
 
-  const startSession = async () => {
-    if (!topic || !subjectId) return;
+  const generatePlan = useCallback(async () => {
+    if (!topicId) return;
+    setIsGeneratingPlan(true);
+    setPlanText("");
+    abortRef.current = new AbortController();
+
+    try {
+      const res = await fetch("/api/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topicId }),
+        signal: abortRef.current.signal,
+      });
+
+      if (!res.ok) { const errText = await res.text(); throw new Error(`Plan API error: ${res.status} ${errText}`); }
+
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("No reader");
+
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        setPlanText(fullText);
+      }
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return;
+      console.error("Plan generation error:", err);
+      setError("Nem sikerült létrehozni a tanulási tervet. Próbáld újra!");
+    } finally {
+      setIsGeneratingPlan(false);
+    }
+  }, [topicId]);
+
+  const handlePlanConfirm = async () => {
+    if (!topic || !subjectId || !planText) return;
+
     const res = await fetch("/api/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ topic_id: topicId, subject_id: subjectId }),
     });
     if (!res.ok) { const err = await res.json(); setError(err.error || "Nem sikerült létrehozni a szekciót."); return; }
+
     const newSession: ChatSession = await res.json();
     setSession(newSession);
-    setDisplayMessages([]);
-    setStoredMessages([]);
+
+    await fetch(`/api/sessions/${newSession.id}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: "assistant", content: planText }),
+    });
+
+    await fetch(`/api/sessions/${newSession.id}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: "user", content: "Elfogadom a tanulási tervet. Kezdjük!" }),
+    });
+
+    const planMsg: ChatMessage = { role: "assistant", content: planText, id: "", session_id: newSession.id, created_at: new Date().toISOString() };
+    const confirmMsg: ChatMessage = { role: "user", content: "Elfogadom a tanulási tervet. Kezdjük!", id: "", session_id: newSession.id, created_at: new Date().toISOString() };
+    setStoredMessages([planMsg, confirmMsg]);
+    setDisplayMessages([{ role: "ai", text: planText }, { role: "user", text: "Elfogadom a tanulási tervet. Kezdjük!" }]);
+    setPlanText("");
     setQuizResults([]);
     setQuizSelected(undefined);
     phase.start();
@@ -192,7 +265,6 @@ export default function LearnPage() {
 
     if (phase.currentStep?.phase === "quiz") return;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     triggerAIResponse();
   }, [phase.subPhase, phase.currentStep?.phase, isStreaming, triggerAIResponse]);
 
@@ -204,6 +276,8 @@ export default function LearnPage() {
   }, [phase.currentCheckpoint, phase.isStarted, phase.isComplete, saveCheckpoint]);
 
   const handleStart = async () => {
+    if (isGeneratingPlan || planText) return;
+
     if (session && session.status === "in_progress" && session.current_checkpoint > 0) {
       // Resume existing session from saved checkpoint
       setQuizResults([]);
@@ -215,10 +289,10 @@ export default function LearnPage() {
       setQuizSelected(undefined);
       phase.start();
     } else {
-      // Create new session
+      // No session — generate learning plan first
       setQuizResults([]);
       setQuizSelected(undefined);
-      await startSession();
+      generatePlan();
     }
   };
 
@@ -233,6 +307,8 @@ export default function LearnPage() {
   const handleUserResponse = async (text: string) => {
     setDisplayMessages((prev) => [...prev, { role: "user", text }]);
     await saveMessage("user", text);
+    setStoredMessages((prev) => [...prev, { role: "user", content: text, id: "", session_id: session!.id, created_at: new Date().toISOString() }]);
+    hasUserRespondedRef.current = true;
     phase.setSubPhase("ai-responding");
   };
 
@@ -262,6 +338,9 @@ export default function LearnPage() {
   };
 
   const handleBack = async () => {
+    if (isGeneratingPlan) {
+      abortRef.current?.abort();
+    }
     if (session && phase.isStarted && !phase.isComplete) {
       await saveCheckpoint(phase.currentCheckpoint);
     }
@@ -348,11 +427,39 @@ export default function LearnPage() {
           )
         )}
 
+        {/* Plan generation — loading */}
+        {isGeneratingPlan && !planText && (
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-accent" />
+            <p className="text-sm text-zinc-500">Lumi éppen elkészíti a tanulási terved...</p>
+          </div>
+        )}
+
+        {/* Plan generation — streaming */}
+        {isGeneratingPlan && planText && (
+          <LearningPlan
+            planText={planText}
+            isLoading={true}
+            onConfirm={() => {}}
+            onBack={handleBack}
+          />
+        )}
+
+        {/* Plan — displayed */}
+        {!isGeneratingPlan && planText && (
+          <LearningPlan
+            planText={planText}
+            isLoading={false}
+            onConfirm={handlePlanConfirm}
+            onBack={handleBack}
+          />
+        )}
+
         {/* Idle — pre-start */}
-        {phase.subPhase === "idle" && (
+        {phase.subPhase === "idle" && !isGeneratingPlan && !planText && (
           <div className="mt-8 rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
             <p className="mb-1 text-lg font-medium text-zinc-600 dark:text-zinc-400">📚 Készen állsz tanulni?</p>
-            <p className="mb-6 text-sm text-zinc-400">A tanulás három fázisból áll: gyakorlatok → tanítás → kvíz.</p>
+            <p className="mb-6 text-sm text-zinc-400">Lumi először elkészíti a tanulási terved, majd végigvezet a gyakorlatokon.</p>
             <button onClick={handleStart} className="cursor-pointer rounded-lg bg-accent px-8 py-3 text-base font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]">
               {session && session.status === "in_progress" ? "▶️ Folytatás" : "🚀 Kezdés"}
             </button>
