@@ -90,7 +90,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `ConfirmModal` | `open`, `title`, `message`, `confirmLabel`, `cancelLabel`, `onConfirm`, `onCancel`, `variant` | Backdrop dismiss, focus rings, danger (red) / default (accent) variants |
 | `AnimatedStats` | `stats: {value, label}[]` | IntersectionObserver + requestAnimationFrame + easeOutExpo counter animation |
 | `ProgressRoadmap` | `topicName`, `currentCheckpoint`, `totalCheckpoints`, `phases[]`, `avatarUrl` | 7 islands with avatar on current, left/right arrow nav, 3 phase tints, "Kezdés"/"Folytatás" button. Reads real checkpoint from DB |
-| `LearningPlan` | `planText`, `isLoading`, `onConfirm`, `onBack` | Displays AI-generated learning plan with streaming text, sections, and confirm/cancel buttons. Shown once before session start |
+
 
 ---
 
@@ -110,23 +110,16 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 │ ← Vissza       Téma neve                                │
 ├──────────────────────────────────────────────────────────┤
 │                                                          │
-│  [Phase 0 — Plan: Generated once before session]        │
-│  ┌── Lumi ──────────────────────────────────────────┐   │
-│  │  [avatar]  Lumi streams a structured learning    │   │
-│  │            plan based on study materials...       │   │
-│  └──────────────────────────────────────────────────┘   │
-│                                                          │
-│              [Elfogadom, kezdjük!]                       │
-│                                                          │
 │  ───── session begins, exercises start ─────            │
 │                                                          │
 │  [Phase 1 — Exercises: AI Explains × N]                 │
 │  ┌── Lumi ──────────────────────────────────────────┐   │
 │  │  [avatar]  AI streams explanation...             │   │
 │  └──────────────────────────────────────────────────┘   │
-│  ┌── "❓ Van kérdésed eddig?" ─────────────────┐   │
-│  │  [Igen, van kérdésem]  [Nem, folytassuk]     │   │
+│  ┌── Te ───────────────────────────────────────────┐   │
+│  │  ✏️ Írd a válaszod...               [Küldés]   │   │
 │  └──────────────────────────────────────────────────┘   │
+│  (user asks a question or types to continue)             │
 │                                                          │
 │  [Phase 1 — Exercises: Inverted Teacher × N]            │
 │  ┌── Lumi ───────────────────────────────────────┐    │
@@ -175,8 +168,8 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 
 | Phase | Mode | Advance Mechanism |
 |---|---|---|---|
-| Plan | AI analyzes materials → streams structured plan | [Elfogadom, kezdjük!] → session created, exercises begin |
-| Explain | AI streams explanation | "Van kérdésed?" → [Igen] (input opens) / [Nem] (next exercise) |
+| Plan | AI analyzes materials → generates structured plan | Generated in background, stored as first message for AI context |
+| Explain | AI streams explanation | Input appears directly — user can ask a question or type to continue |
 | Inverted Teacher | AI asks → user types answer → AI responds | **Auto-advance** — next question after AI responds |
 | Reverse Teaching | AI probes → user teaches → AI responds | **Auto-advance** — next question after AI responds |
 | Quiz | MCQ — user selects → [Ellenőrzés] → feedback shown → [Következő] | **Manual** — user clicks [Ellenőrzés] then [Következő] |
@@ -187,13 +180,12 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | Task | Components to Build | Status |
 |---|---|---|
 | **3.5 — Plan generation** | `/api/plan` — analyzes study materials, streams structured plan via Groq (GPT-4o fallback) | ✅ |
-| | `LearningPlan` — displays streaming plan with sections, confirm/cancel buttons | ✅ |
-| | Learn page integration: first "Kezdés" generates plan → user confirms → session created with plan as first message for context | ✅ |
+| | Plan generated in background on "Kezdés", stored as first AI message for context (not displayed to user) | ✅ |
 | **4a — Learn page renderer** | `LearnPage` — page wrapper, phase-aware content area, progress bar, back link, loading/error/empty states | ✅ |
 | | `AIBubble` — AI message card with avatar + name + streaming text | ✅ |
 | | `UserBubble` — user response card with text | ✅ |
 | | `ResponseInput` — text input + Küldés button, disabled during AI stream | ✅ |
-| | `QuestionPrompt` — "Van kérdésed?" with [Igen] [Nem] buttons | ✅ |
+| | `QuestionPrompt` — removed; input field appears directly after explanation | ✅ → Removed |
 | | `QuizQuestion` — MCQ with 4 option buttons, feedback (✅/❌), [Következő] button | ✅ |
 | | `CompletionScreen` — congratulations card with stats, XP, [Újratanulás] + [Vissza] buttons | ✅ |
 | | `ProgressBar` — simple fraction bar at top (e.g. "3/7") | ✅ |
@@ -294,6 +286,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 9. Login page reveal animations, avatar system (male/female SVGs replacing character picker), ProgressRoadmap component, subjects page redesign, header sizing unified with landing page
 10. Task 4a built — 7 Learn page components (AIBubble, UserBubble, ResponseInput, QuestionPrompt, QuizQuestion, CompletionScreen, ProgressBar) with mock 7-step session flow at `/topics/[topicId]/learn`. Leo/Mia characters replaced with Lumi across schema, UI, docs, landing page, settings, setup-profile. Lumi avatar refined as detailed otter SVG (full-body, transparent bg, no particles). Route links updated from `/chat` → `/learn`
 11. Tasks 4b-4e built — `useSessionPhaseManager` hook, session lifecycle API (`POST/GET /api/sessions`, `GET /api/sessions/[id]`, `PUT /api/sessions/[id]/checkpoint`, `POST /api/sessions/[id]/messages`), `/api/chat` enhanced with study materials + Lumi persona + GPT-4o fallback, learn page wired to real API, ProgressRoadmap reads real checkpoint, PDF text extraction on upload via `pdf-parse`. Migration `003_session_checkpoints.sql` added checkpoint columns + `topic_id` on quiz tables
+12. Exercise flow improvements — removed QuestionPrompt ("Van kérdésed?" interrupt), plan generation moved to background (no longer displayed to user), phase context injected on every AI call via `phaseInstruction`, fixed explain phase looping, session status set to "completed" on finish, save error handling, derived CompletionScreen stats, consistent materials upload UI (no layout shift)
 
 ## Getting Started
 

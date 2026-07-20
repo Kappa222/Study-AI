@@ -64,7 +64,7 @@ export function useSessionPhaseManager(
     [stepIndex],
   );
 
-  const totalCheckpoints = 7;
+  const totalCheckpoints = SESSION_STRUCTURE.length - 1;
 
   const isStarted = subPhase !== "idle";
   const isComplete = currentStep?.phase === "complete";
@@ -92,23 +92,19 @@ export function useSessionPhaseManager(
   }, []);
 
   const goToNextStep = useCallback(() => {
-    setStepIndex((prev) => {
-      const next = prev + 1;
-      const nextStep = SESSION_STRUCTURE[Math.min(next, SESSION_STRUCTURE.length - 1)];
-      if (nextStep) {
-        if (nextStep.phase === "explain") {
-          setSubPhase("ai-responding");
-        } else if (nextStep.phase === "inverted-teacher" || nextStep.phase === "reverse-teaching") {
-          setSubPhase("ai-responding");
-        } else if (nextStep.phase === "quiz") {
-          setSubPhase("quiz-answering");
-        } else if (nextStep.phase === "complete") {
-          setSubPhase("complete");
-        }
+    const nextIndex = Math.min(stepIndex + 1, SESSION_STRUCTURE.length - 1);
+    setStepIndex(nextIndex);
+    const nextStep = SESSION_STRUCTURE[nextIndex];
+    if (nextStep) {
+      if (nextStep.phase === "explain" || nextStep.phase === "inverted-teacher" || nextStep.phase === "reverse-teaching") {
+        setSubPhase("ai-responding");
+      } else if (nextStep.phase === "quiz") {
+        setSubPhase("quiz-answering");
+      } else if (nextStep.phase === "complete") {
+        setSubPhase("complete");
       }
-      return next;
-    });
-  }, []);
+    }
+  }, [stepIndex]);
 
   const reset = useCallback(() => {
     setStepIndex(0);

@@ -90,9 +90,9 @@ export default function MaterialsPage() {
 
     setTitle("");
     setContent("");
-    await loadData();
     setLoading(false);
     if (res.ok) setJustAdded(true);
+    await loadData();
   };
 
   const handlePdfSubmit = async (e: React.FormEvent) => {
@@ -112,9 +112,9 @@ export default function MaterialsPage() {
     setTitle("");
     setFile(null);
     if (fileRef.current) fileRef.current.value = "";
-    await loadData();
     setLoading(false);
     if (res.ok) setJustAdded(true);
+    await loadData();
   };
 
   const handleDelete = async () => {
@@ -263,21 +263,6 @@ export default function MaterialsPage() {
         </form>
       )}
 
-      {justAdded && (
-        <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-6 text-center dark:border-green-800 dark:bg-green-950/30">
-          <p className="mb-1 font-medium text-green-700 dark:text-green-300">Tananyag elmentve!</p>
-          <p className="mb-3 text-xs text-green-600 dark:text-green-400">
-            Most már elkezdheted a tanulást ezzel az anyaggal.
-          </p>
-          <Link
-            href={`/topics/${topicId}/learn`}
-            className="inline-block cursor-pointer rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
-          >
-            📚 Indíts tanulást
-          </Link>
-        </div>
-      )}
-
       {materials.length === 0 && !justAdded ? (
         <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
           <p className="text-zinc-500 dark:text-zinc-400">
@@ -285,67 +270,85 @@ export default function MaterialsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-3">
-          {materials.map((material) => (
-            <div key={material.id}>
-              <div className="flex items-center justify-between rounded-2xl border border-zinc-200/60 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-accent/40">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-sm dark:bg-violet-950/50">
-                    {material.file_type === "pdf" ? "📄" : "📝"}
-                  </span>
-                  <div>
-                    <h3 className="font-medium">{material.title}</h3>
-                    <p className="text-xs text-zinc-400">
-                      {material.file_type === "pdf" ? "PDF" : "Szöveg"} ·{" "}
-                      {formatDate(material.created_at)}
-                    </p>
+        <>
+          {justAdded && (
+            <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
+              <p className="mb-1 font-medium text-green-700 dark:text-green-300">Tananyag elmentve!</p>
+              <p className="mb-3 text-xs text-green-600 dark:text-green-400">
+                Most már elkezdheted a tanulást ezzel az anyaggal.
+              </p>
+              <Link
+                href={`/topics/${topicId}/learn`}
+                className="inline-block cursor-pointer rounded-lg bg-accent px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
+              >
+                📚 Indíts tanulást
+              </Link>
+            </div>
+          )}
+          {materials.length > 0 && (
+            <div className="grid gap-3">
+              {materials.map((material) => (
+                <div key={material.id}>
+                  <div className="flex items-center justify-between rounded-2xl border border-zinc-200/60 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-accent/40">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-sm dark:bg-violet-950/50">
+                        {material.file_type === "pdf" ? "📄" : "📝"}
+                      </span>
+                      <div>
+                        <h3 className="font-medium">{material.title}</h3>
+                        <p className="text-xs text-zinc-400">
+                          {material.file_type === "pdf" ? "PDF" : "Szöveg"} ·{" "}
+                          {formatDate(material.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {material.file_type === "text" ? (
+                        <button
+                          onClick={() =>
+                            setExpandedId(
+                              expandedId === material.id ? null : material.id,
+                            )
+                          }
+                          className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-violet-950/50"
+                        >
+                          {expandedId === material.id ? "Elrejt" : "Megtekint"}
+                        </button>
+                      ) : material.file_url ? (
+                        <a
+                          href={material.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-violet-950/50"
+                        >
+                          Megnyitás
+                        </a>
+                      ) : null}
+                      <button
+                        onClick={() => setDeleteMatId(material.id)}
+                        aria-label="Törlés"
+                        className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-red-950/50"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ${
+                      expandedId === material.id && material.content
+                        ? "max-h-[2000px] opacity-100"
+                        : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="mt-1 rounded-b-xl border-x border-b border-zinc-200 bg-zinc-50 p-4 text-sm leading-relaxed whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-900/50">
+                      {material.content}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {material.file_type === "text" ? (
-                    <button
-                      onClick={() =>
-                        setExpandedId(
-                          expandedId === material.id ? null : material.id,
-                        )
-                      }
-                      className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-violet-950/50"
-                    >
-                      {expandedId === material.id ? "Elrejt" : "Megtekint"}
-                    </button>
-                  ) : material.file_url ? (
-                    <a
-                      href={material.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-accent transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-violet-950/50"
-                    >
-                      Megnyitás
-                    </a>
-                  ) : null}
-                  <button
-                    onClick={() => setDeleteMatId(material.id)}
-                    aria-label="Törlés"
-                    className="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-sm active:scale-[0.98] dark:hover:bg-red-950/50"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-              <div
-                className={`overflow-hidden transition-all duration-300 ${
-                  expandedId === material.id && material.content
-                    ? "max-h-[2000px] opacity-100"
-                    : "max-h-0 opacity-0"
-                }`}
-              >
-                <div className="mt-1 rounded-b-xl border-x border-b border-zinc-200 bg-zinc-50 p-4 text-sm leading-relaxed whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-900/50">
-                  {material.content}
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       <ConfirmModal

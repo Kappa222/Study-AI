@@ -90,13 +90,16 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
 
-  const { sessionId, messages } = await req.json();
+  const { sessionId, messages, phaseInstruction } = await req.json();
 
   if (!sessionId || !messages) {
     return new Response("sessionId and messages required", { status: 400 });
   }
 
-  const systemPrompt = await buildSystemPrompt(sessionId);
+  let systemPrompt = await buildSystemPrompt(sessionId);
+  if (phaseInstruction) {
+    systemPrompt += `\n\n${phaseInstruction}`;
+  }
 
   try {
     const stream = await createStream(systemPrompt, messages, false);
