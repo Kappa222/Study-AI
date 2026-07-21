@@ -34,16 +34,16 @@ The AI plays the persona of **Lumi** (meaning "light", from "lumen") — a frien
 | Topics | Per-user CRUD inside a subject |
 | AI output style | Streaming responses (real-time token output) |
 | Session storage | Cookies — so server-side code (proxy, API routes) can read auth state |
-| Learning flow | Phase 1: Exercises (AI explains topic + Inverted Teacher Q&A) → Phase 2: Reverse Teaching (AI probes, user teaches back) → Phase 3: Quiz (multiple choice, scored). One session, resumable via checkpoints |
-| Exercise checkpoints | Saved after each completed step; quitting mid-step restarts it |
-| Progress UI | Only on topic detail page — horizontal roadmap with 7 islands (completed / current / locked). Learn page has a simple progress bar (e.g. "3/7") |
+| Learning flow | Island-based: AI analyzes materials → splits into logical sections (islands). Each island = interactive teaching (scenario/socratic/conversational) → Inverted Teacher probe → mini-quiz (6 MCQ on island's key concepts). After each island, user returns to roadmap to start the next. Final island → completion screen |
+| Checkpoints | Saved after island's mini-quiz completes (not during); quitting mid-island restarts that island from teaching |
+| Progress UI | Topic detail page — horizontal roadmap with N island circles (titles below, completed / current / locked). Learn page has `current/N` progress bar + current island title badge |
 | Card style | `rounded-2xl border-zinc-200/60 bg-white shadow-sm` with hover lift |
 | Button style | `cursor-pointer` with hover lift (`-translate-y-0.5`) and click press (`scale-[0.98]`) |
 | Input style | `border-zinc-200 py-2.5` with accent focus ring |
 | Gamification | Planned: daily streaks, XP, per-topic stats |
 | User avatar | Male / female flat SVG (no labels), chosen on signup, changeable in /settings, stored in `profiles.avatar_url` |
 | Learning partner | Lumi — single character with dedicated avatar |
-| Roadmap UI | Horizontal island-based progress roadmap (7 islands: 3 exercises, 3 teaching, 1 quiz) with left/right arrow nav; user avatar stands on current island |
+| Roadmap UI | Horizontal island-based progress roadmap (N islands = AI-generated sections) with left/right arrow nav; user avatar stands on current island, island titles shown below circles |
 | Quality gate | Run `npm run build && npm run lint` before every commit — catches type errors, lint violations, and compilation failures. Full E2E + component testing planned in Phase 5 |
 
 ## Database Schema
@@ -103,96 +103,83 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | Session messages API | `/api/sessions/[id]/messages` | List messages, create | ✅ Built |
 | Chat API update | `/api/chat` | Enhanced with session context, study materials as system prompt, GPT-4o fallback | ✅ Done |
 
-#### Learn Page — Final Design (`/topics/[topicId]/learn`)
+#### Learn Page — Island Flow (`/topics/[topicId]/learn`)
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │ ← Vissza       Téma neve                                │
+│  [████░░░░ 2/5]  [The Treaty of Versailles]            │
 ├──────────────────────────────────────────────────────────┤
 │                                                          │
-│  ───── session begins, exercises start ─────            │
+│  ───── Island K: "Island Title" ─────                   │
 │                                                          │
-│  [Phase 1 — Exercises: AI Explains × N]                 │
+│  [TEACH — scenario/socratic/conversational]              │
 │  ┌── Lumi ──────────────────────────────────────────┐   │
-│  │  [avatar]  AI streams explanation...             │   │
+│  │  AI streams interactive teaching...              │   │
+│  │  (scoped to this island's key_concepts only,     │   │
+│  │   no future topics mentioned)                    │   │
 │  └──────────────────────────────────────────────────┘   │
 │  ┌── Te ───────────────────────────────────────────┐   │
 │  │  ✏️ Írd a válaszod...               [Küldés]   │   │
 │  └──────────────────────────────────────────────────┘   │
-│  (user asks a question or types to continue)             │
 │                                                          │
-│  [Phase 1 — Exercises: Inverted Teacher × N]            │
+│  [PROBE — Inverted Teacher]                              │
 │  ┌── Lumi ───────────────────────────────────────┐    │
 │  │  "Nem értem, hogy jön ki..."                  │    │
+│  │  (probe_questions from island definition)     │    │
 │  └────────────────────────────────────────────────┘    │
 │  ┌── Te ───────────────────────────────────────────┐   │
 │  │  ✏️ Írd a válaszod...               [Küldés]   │   │
 │  └──────────────────────────────────────────────────┘   │
-│  (auto-advances after AI responds)                       │
 │                                                          │
-│  [Phase 2 — Reverse Teaching × N]                       │
-│  ┌── Lumi ───────────────────────────────────────┐    │
-│  │  "És ha negatív a diszkrimináns, akkor...?"  │    │
-│  └────────────────────────────────────────────────┘    │
-│  ┌── Te ───────────────────────────────────────────┐   │
-│  │  ✏️ Írd a válaszod...               [Küldés]   │   │
-│  └──────────────────────────────────────────────────┘   │
-│  (auto-advances after AI responds)                       │
-│                                                          │
-│  [Phase 3 — Quiz × N]                                    │
+│  [MINI-QUIZ — 6 MCQ on island's key_concepts]           │
 │  ┌── Kvíz ────────────────────────────────────────┐   │
-│  │  Mi a másodfokú egyenlet megoldóképlete?       │   │
-│  │  ○ x = (-b ± √(b² - 4ac)) / 2a               │   │
-│  │  ○ x = (-b ± √(b² + 4ac)) / 2a               │   │
-│  │  ...                                           │   │
+│  │  Mi volt a versailles-i békeszerződés...?     │   │
+│  │  ○ opció A  ○ opció B                         │   │
+│  │  ○ opció C  ○ opció D                         │   │
 │  │                    [Ellenőrzés]               │   │
-│  │  (after: ✅ Igen! / ❌ Nem, a helyes: ...)   │   │
+│  │  (after: ✅ / ❌ + correct answer)            │   │
 │  │                    [Következő]                │   │
 │  └──────────────────────────────────────────────────┘   │
 │                                                          │
-│  [Session End — Congratulations]                        │
+│  (mini-quiz done → save checkpoint → redirect to         │
+│   roadmap for next island)                               │
+│                                                          │
+│  [Last Island → Completion Screen]                       │
 │  ┌── 🎉 Gratulálunk! ──────────────────────────────┐   │
 │  │  Befejezted a "Téma neve" tanulást!             │   │
-│  │                                                 │   │
-│  │  📊 Eredményed                                 │   │
-│  │  Helyes válaszok: 8/10 (80%)                   │   │
-│  │  Teljesített gyakorlatok: 5/5                  │   │
-│  │  Megszerzett XP: +120                          │   │
-│  │                                                 │   │
-│  │   [🔄 Újratanulás]   [← Vissza a témához]     │   │
+│  │  📊 N island completed + mini-quiz results      │   │
+│  │   [🔄 Újratanulás]   [← Vissza]               │   │
 │  └──────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────┘
 ```
 
 #### Interaction Rules
 
-| Phase | Mode | Advance Mechanism |
-|---|---|---|---|
-| Plan | AI analyzes materials → generates structured plan | Generated in background, stored as first message for AI context |
-| Explain | AI streams explanation | Input appears directly — user can ask a question or type to continue |
-| Inverted Teacher | AI asks → user types answer → AI responds | **Auto-advance** — next question after AI responds |
-| Reverse Teaching | AI probes → user teaches → AI responds | **Auto-advance** — next question after AI responds |
-| Quiz | MCQ — user selects → [Ellenőrzés] → feedback shown → [Következő] | **Manual** — user clicks [Ellenőrzés] then [Következő] |
-| End | Congratulations screen | [🔄 Újratanulás] restarts session, [← Vissza] goes to topic detail |
+| Sub-step | Mode | Advance Mechanism |
+|---|---|---|
+| Teach | AI streams interactive teaching (scenario/socratic/conversational) | User types response → advances to Probe |
+| Probe | AI uses Inverted Teacher (acts confused, asks probe_questions) | User answers → advances to Mini-quiz |
+| Mini-quiz | 6 MCQ — select → [Ellenőrzés] → feedback → [Következő] | **Manual** — two clicks per question. Last question → save checkpoint → redirect to roadmap (or completion if final island) |
 
 #### Tasks Breakdown
 
 | Task | Components to Build | Status |
 |---|---|---|
-| **3.5 — Plan generation** | `/api/plan` — analyzes study materials, streams structured plan via Groq (GPT-4o fallback) | ✅ |
-| | Plan generated in background on "Kezdés", stored as first AI message for context (not displayed to user) | ✅ |
-| **4a — Learn page renderer** | `LearnPage` — page wrapper, phase-aware content area, progress bar, back link, loading/error/empty states | ✅ |
-| | `AIBubble` — AI message card with avatar + name + streaming text | ✅ |
+| **3.5 — Island analysis** | `/api/analyze` — analyzes study materials via Groq (GPT-4o fallback), splits into logical islands with approach, key_concepts, probe_questions | ✅ |
+| | Islands stored as `__ISLANDS__:` message in session, parsed on resume | ✅ |
+| **4a — Learn page renderer** | `LearnPage` — page wrapper, island-driven content area, progress bar, back link, loading/error/empty states | ✅ |
+| | `AIBubble` — AI message card with avatar + name + streaming text (token-by-token) | ✅ |
 | | `UserBubble` — user response card with text | ✅ |
 | | `ResponseInput` — text input + Küldés button, disabled during AI stream | ✅ |
-| | `QuestionPrompt` — removed; input field appears directly after explanation | ✅ → Removed |
 | | `QuizQuestion` — MCQ with 4 option buttons, feedback (✅/❌), [Következő] button | ✅ |
 | | `CompletionScreen` — congratulations card with stats, XP, [Újratanulás] + [Vissza] buttons | ✅ |
-| | `ProgressBar` — simple fraction bar at top (e.g. "3/7") | ✅ |
-| **4b — Phase manager** | `useSessionPhaseManager` hook — phase state machine, auto-advance logic, phase badge, resume support | ✅ |
-| **4c — Roadmap wiring** | Wire `ProgressRoadmap` to real session.checkpoint | ✅ Wired to real session data |
-| **4d — Session lifecycle** | API routes: create session, save checkpoints, resume existing session. Checkpoint save on each completed step | ✅ |
-| **4e — AI context wiring** | Inject study materials + Lumi persona as system prompt, Groq → GPT-4o fallback | ✅ |
+| | `ProgressBar` — simple fraction bar at top (e.g. "2/5") | ✅ |
+| **4b — Island phase manager** | `useSessionPhaseManager` hook — dynamic structure from island titles, resume support, phase badge shows current island title | ✅ |
+| **4c — Roadmap wiring** | Wire `ProgressRoadmap` to real session.checkpoint, show island titles below circles, "Kezdés"/"Folytatás" Link navigates to learn page | ✅ |
+| **4d — Session lifecycle** | API routes: create session, save checkpoints, resume existing session. Checkpoint saved after island's mini-quiz completed | ✅ |
+| **4e — AI context wiring** | Inject study materials + Lumi persona as system prompt, Groq → GPT-4o fallback. Per-island phase instruction includes approach guide + key_concepts | ✅ |
+| **4f — Mini-quiz scoped generation** | `/api/quiz/generate` accepts `keyConcepts` + `questionCount` for island-scoped 6-question mini-quizzes | ✅ |
 
 ---
 
@@ -255,6 +242,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `/topics/[topicId]/learn`     | ✅     | Phase 2 — Interactive lesson player (AI explains → Inverted Teacher → Reverse Teaching → Quiz → Results, real session flow) |
 | `/topics/[topicId]/quiz`      | ❌     | Phase 3 — Standalone quiz (MCQ with instant feedback, score summary) |
 | `/settings`                   | ✅     | Profile editing, persona change, logout                       |
+| `/api/analyze`                | ✅     | POST — analyzes materials via Groq, returns `Island[]` (title, approach, key_concepts, probe_questions) |
 | `/api/chat`                   | ✅     | Groq streaming with session context + study materials + GPT-4o fallback |
 | `/api/sessions`               | ✅     | POST (create) + GET ?topic_id= (find latest in-progress)      |
 | `/api/sessions/[id]`          | ✅     | GET (session + messages)                                       |
@@ -262,16 +250,18 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 | `/api/sessions/[id]/messages` | ✅     | POST (save message)                                            |
 | `/api/materials`              | ✅     | GET (list by topic) + POST (text JSON or PDF FormData)        |
 | `/api/materials/[id]`         | ✅     | DELETE material + storage file                                |
+| `/api/quiz/generate`          | ✅     | POST — generates MCQ quiz. Accepts `keyConcepts` + `questionCount` for scoped mini-quizzes |
 | `/api/topics`                 | ✅     | GET (list by subject) + POST (create) + PUT (edit) + DELETE   |
+| `/api/plan`                   | ❌     | Replaced by `/api/analyze` (island-based flow)                 |
 
 ## Known Issues
 
 - Kvíz tab on topic detail page is a placeholder ("Hamarosan elérhető...")
 - Statisztika tab shows only basic counts (session count, material count)
-- Quiz questions are hardcoded mock data (Phase 3 Task 1 — AI-generated quizzes)
 - No error boundaries — API failures show raw errors or silent fails
 - No loading skeletons — spinner-only loading states
 - No mobile responsiveness audit done yet
+- `/api/plan` is deprecated (replaced by `/api/analyze`) but still exists — should be removed in next cleanup
 
 ## Migration History
 
@@ -287,6 +277,7 @@ All tables have RLS enabled. Auto-`user_id` trigger on user-owned tables via `se
 10. Task 4a built — 7 Learn page components (AIBubble, UserBubble, ResponseInput, QuestionPrompt, QuizQuestion, CompletionScreen, ProgressBar) with mock 7-step session flow at `/topics/[topicId]/learn`. Leo/Mia characters replaced with Lumi across schema, UI, docs, landing page, settings, setup-profile. Lumi avatar refined as detailed otter SVG (full-body, transparent bg, no particles). Route links updated from `/chat` → `/learn`
 11. Tasks 4b-4e built — `useSessionPhaseManager` hook, session lifecycle API (`POST/GET /api/sessions`, `GET /api/sessions/[id]`, `PUT /api/sessions/[id]/checkpoint`, `POST /api/sessions/[id]/messages`), `/api/chat` enhanced with study materials + Lumi persona + GPT-4o fallback, learn page wired to real API, ProgressRoadmap reads real checkpoint, PDF text extraction on upload via `pdf-parse`. Migration `003_session_checkpoints.sql` added checkpoint columns + `topic_id` on quiz tables
 12. Exercise flow improvements — removed QuestionPrompt ("Van kérdésed?" interrupt), plan generation moved to background (no longer displayed to user), phase context injected on every AI call via `phaseInstruction`, fixed explain phase looping, session status set to "completed" on finish, save error handling, derived CompletionScreen stats, consistent materials upload UI (no layout shift)
+13. Island-based restructuring — replaced rigid 7-step template with dynamic island analysis (`/api/analyze`). Each island = interactive teaching (scenario/socratic/conversational) → Inverted Teacher probe → 6-question mini-quiz on key_concepts. `useSessionPhaseManager` now accepts dynamic islandTitles array. After each island's mini-quiz, checkpoint saved + user returns to roadmap. `/api/quiz/generate` supports scoped generation (`keyConcepts`, `questionCount`). `ProgressRoadmap` shows island titles below circles. Removed global quiz step from session structure.
 
 ## Getting Started
 

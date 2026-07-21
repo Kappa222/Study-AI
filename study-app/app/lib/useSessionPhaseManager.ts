@@ -3,31 +3,6 @@
 import { useState, useCallback, useMemo } from "react";
 import type { SessionPhase, SessionSubPhase, SessionStep } from "./types";
 
-const SESSION_STRUCTURE: SessionStep[] = [
-  { phase: "explain", checkpoint: 0 },
-  { phase: "explain", checkpoint: 1 },
-  { phase: "explain", checkpoint: 2 },
-  { phase: "inverted-teacher", checkpoint: 3 },
-  { phase: "inverted-teacher", checkpoint: 4 },
-  { phase: "reverse-teaching", checkpoint: 5 },
-  { phase: "quiz", checkpoint: 6 },
-  { phase: "complete", checkpoint: 7 },
-];
-
-const PHASE_LABELS: Record<SessionPhase, string> = {
-  explain: "Gyakorlatok",
-  "inverted-teacher": "Tanítás",
-  "reverse-teaching": "Tanítás",
-  quiz: "Kvíz",
-  complete: "Befejezés",
-};
-
-const PHASES_CONFIG = [
-  { startIndex: 0, count: 3, label: "Gyakorlatok" },
-  { startIndex: 3, count: 3, label: "Tanítás" },
-  { startIndex: 6, count: 1, label: "Kvíz" },
-];
-
 export interface PhaseManagerState {
   stepIndex: number;
   currentStep: SessionStep | null;
@@ -38,7 +13,7 @@ export interface PhaseManagerState {
   isComplete: boolean;
   phaseName: string;
   phaseBadge: string;
-  phasesConfig: typeof PHASES_CONFIG;
+  islandCount: number;
 }
 
 export interface PhaseManagerActions {
@@ -50,61 +25,77 @@ export interface PhaseManagerActions {
 }
 
 export function useSessionPhaseManager(
+  islandTitles: string[] = [],
   initialCheckpoint = 0,
 ): PhaseManagerState & PhaseManagerActions {
+  const structure = useMemo(() => {
+    const steps: SessionStep[] = islandTitles.map((_, i) => ({
+      phase: "explain" as SessionPhase,
+      checkpoint: i,
+    }));
+    steps.push({ phase: "complete" as SessionPhase, checkpoint: islandTitles.length });
+    return steps;
+  }, [islandTitles]);
+
+  const maxIndex = structure.length - 1;
+
   const [stepIndex, setStepIndex] = useState(
-    Math.min(initialCheckpoint, SESSION_STRUCTURE.length - 1),
+    Math.min(initialCheckpoint, maxIndex),
   );
   const [subPhase, setSubPhase] = useState<SessionSubPhase>(
     initialCheckpoint > 0 ? "waiting-response" : "idle",
   );
 
   const currentStep = useMemo(
-    () => SESSION_STRUCTURE[Math.min(stepIndex, SESSION_STRUCTURE.length - 1)] ?? null,
-    [stepIndex],
+    () => (structure.length > 0 ? structure[Math.min(stepIndex, maxIndex)] ?? null : null),
+    [stepIndex, structure, maxIndex],
   );
 
-  const totalCheckpoints = SESSION_STRUCTURE.length - 1;
+  const totalCheckpoints = islandTitles.length;
 
   const isStarted = subPhase !== "idle";
   const isComplete = currentStep?.phase === "complete";
 
   const phaseName = currentStep?.phase ?? "explain";
-  const phaseBadge = PHASE_LABELS[phaseName];
+  const phaseBadge = useMemo(() => {
+    if (phaseName === "complete") return "Befejezés";
+    if (stepIndex >= 0 && stepIndex < islandTitles.length) {
+      return islandTitles[stepIndex];
+    }
+    return "Tanulás";
+  }, [phaseName, stepIndex, islandTitles]);
 
   const start = useCallback(() => {
+    if (structure.length === 0) return;
     setStepIndex(0);
     setSubPhase("ai-responding");
-  }, []);
+  }, [structure.length]);
 
   const resumeFrom = useCallback((checkpoint: number) => {
-    const targetStep = SESSION_STRUCTURE.findIndex((s) => s.checkpoint === checkpoint);
-    const idx = targetStep >= 0 ? targetStep : 0;
-    const step = SESSION_STRUCTURE[idx];
+    if (structure.length === 0) return;
+    const idx = Math.min(checkpoint, maxIndex);
+    const step = structure[idx];
     setStepIndex(idx);
-    if (step?.phase === "quiz") {
-      setSubPhase("quiz-answering");
-    } else if (step?.phase === "complete") {
+    if (step?.phase === "complete") {
       setSubPhase("complete");
     } else {
       setSubPhase("ai-responding");
     }
-  }, []);
+  }, [structure, maxIndex]);
 
   const goToNextStep = useCallback(() => {
-    const nextIndex = Math.min(stepIndex + 1, SESSION_STRUCTURE.length - 1);
+    if (structure.length === 0) return;
+    const nextIndex = Math.min(stepIndex + 1, maxIndex);
     setStepIndex(nextIndex);
-    const nextStep = SESSION_STRUCTURE[nextIndex];
+    const nextStep = structure[nextIndex];
     if (nextStep) {
-      if (nextStep.phase === "explain" || nextStep.phase === "inverted-teacher" || nextStep.phase === "reverse-teaching") {
-        setSubPhase("ai-responding");
-      } else if (nextStep.phase === "quiz") {
-        setSubPhase("quiz-answering");
-      } else if (nextStep.phase === "complete") {
+      if (nextStep.phase === "complete") {
         setSubPhase("complete");
+      } else {
+        setSubPhase("ai-responding");
       }
     }
-  }, [stepIndex]);
+  }, [stepIndex, structure, maxIndex]);
 
   const reset = useCallback(() => {
     setStepIndex(0);
@@ -121,7 +112,7 @@ export function useSessionPhaseManager(
     isComplete,
     phaseName,
     phaseBadge,
-    phasesConfig: PHASES_CONFIG,
+    islandCount: islandTitles.length,
     start,
     resumeFrom,
     goToNextStep,

@@ -63,8 +63,8 @@ export async function POST(req: Request) {
       const pdfInstance = new PDFParse({ data: buffer });
       const result = await pdfInstance.getText();
       extractedText = result.pages.map((p: { text: string }) => p.text).join("\n\n");
-    } catch {
-      // PDF might be scanned/image-based with no extractable text
+    } catch (err) {
+      console.error("PDF text extraction failed:", err);
     }
 
     const { data, error } = await supabase

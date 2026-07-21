@@ -34,54 +34,50 @@
 - Per-topic stats section (sessions completed, quiz scores)
 - Link subject detail page topic items to this page
 
-### Task 3.5 — Learning Plan Generation ✅
+### Task 3.5 — Learning Plan → Island Analysis (Replaced ✅)
 
-- Create `/api/plan` endpoint — analyzes study materials via Groq (GPT-4o fallback), generates a structured learning plan
-- Create `LearningPlan` component — displays plan with sections, streaming cursor, confirm/cancel buttons
-- Modify learn page — first "Kezdés" click generates plan, plan streams into `LearningPlan`, user confirms → session is created with plan as first message
-- Plan is persisted as the first session message → always available as context on resume
-- On resume (existing session), plan generation is skipped — user goes straight to exercises
+- **Old:** `/api/plan` generated a structured learning plan (now deprecated)
+- **New:** `/api/analyze` — analyzes study materials via Groq (GPT-4o fallback), splits into logical islands. Each island has: title, approach (scenario/socratic/conversational), key_concepts[], probe_questions[]
+- Islands stored as `__ISLANDS__:` message in session — parsed on resume
+- `/api/plan` kept for backward compatibility but no longer used by the learn page
 
 ### Task 4 — Interactive Learning Session (`/topics/[topicId]/learn`)
 
-This is the core of Cognimo — an interactive lesson player, not a chat app. The AI drives the session through 3 phases. See README for full wireframe design.
+This is the core of Cognimo — an island-based interactive lesson player, not a chat app. The AI analyzes uploaded materials and splits them into logical sections (islands). Each island is a self-contained learning unit with 3 sub-steps.
 
-**Page layout:** Top bar (back link + topic name + progress bar) → phase content area (AI card, user input) → no scrollable chat history
+**Page layout:** Top bar (back link + topic name + progress bar "K/N" + island title badge) → conversation area → text input or quiz UI → no scrollable history (messages accumulate)
 
-**Interaction rules by phase:**
+**Island sub-steps:**
 
-| Phase | Mode | Advance |
+| Sub-step | Mode | Advance |
 |---|---|---|
-| 1a. Explain | AI streams explanation → "Van kérdésed?" → [Igen] (input opens) / [Nem] (next) | Button click |
-| 1b. Inverted Teacher | AI asks clueless question → user types → AI responds → next question | **Auto-advance** |
-| 2. Reverse Teaching | AI probes deeper → user teaches → AI responds → next question | **Auto-advance** |
-| 3. Quiz | MCQ with 4 options → [Ellenőrzés] → ✅/❌ feedback → [Következő] | **Manual** (two clicks) |
-| End | Congratulations screen with score, stats, XP | [Újratanulás] / [Vissza] |
+| **Teach** | AI streams interactive teaching (scenario/socratic/conversational), scoped to island's key_concepts only, no future topics mentioned, no questions asked | User types response |
+| **Probe** | AI uses Inverted Teacher — acts confused, asks from probe_questions | User answers |
+| **Mini-quiz** | 6 MCQ on island's key_concepts — select → [Ellenőrzés] → ✅/❌ feedback → [Következő] | **Manual** (two clicks per question). Last question → save checkpoint + redirect to roadmap (or completion if final island) |
 
 #### 4a — Learn page components ✅
-- `LearnPage` — page wrapper (`/topics/[topicId]/learn`), phase-aware content area, back link, loading/error/empty states
+- `LearnPage` — page wrapper (`/topics/[topicId]/learn`), island-driven content area, progress bar, back link, loading/error/empty states
 - `AIBubble` — AI message card with avatar + name + streaming text (token-by-token)
 - `UserBubble` — user response card
-- `ResponseInput` — text input + Küldés button, disabled during AI stream (Enter or click to send)
-- `QuestionPrompt` — "❓ Van kérdésed eddig?" with [Igen, van kérdésem] [Nem, folytassuk] buttons
-- `QuizQuestion` — MCQ card with 4 option buttons, [Ellenőrzés] button, ✅/❌ indicator + correct answer, [Következő] button
-- `CompletionScreen` — "🎉 Gratulálunk!" card with stats (score, exercises completed, XP earned), [🔄 Újratanulás] and [← Vissza] buttons
-- `ProgressBar` — top bar fraction indicator (e.g. "▓▓▓▓▓░░░░ 3/7")
-- **Status:** ✅ All components built. Wired to real session API via `useSessionPhaseManager`.
+- `ResponseInput` — text input + Küldés button, disabled during AI stream (hidden during mini-quiz)
+- `QuizQuestion` — MCQ card with 4 option buttons, [Ellenőrzés] button, ✅/❌ indicator + correct answer, [Következő] button (used for both teaching mini-quizzes)
+- `CompletionScreen` — "🎉 Gratulálunk!" card with stats (score, islands completed, XP earned), [🔄 Újratanulás] and [← Vissza] buttons
+- `ProgressBar` — top bar fraction indicator (e.g. "▓▓ 2/5") with island title badge
 
-#### 4b — Phase manager ✅
-- `useSessionPhaseManager` hook — client-side state machine: tracks current phase (explain / inverted-teacher / reverse-teaching / quiz / complete), counts progress within phase
-- Auto-advance: Inverted Teacher and Reverse Teaching phases advance to next question automatically after AI responds
-- Explain phase: AI explains → user asked if they have questions → if [Nem], next exercise
-- Quiz phase: manual [Ellenőrzés] → feedback → manual [Következő]
-- Phase indicator: small badge in top bar showing current phase name
-- Resume support: `resumeFrom(checkpoint)` restores session state
+#### 4b — Island phase manager ✅
+- `useSessionPhaseManager` hook — accepts `islandTitles[]`, builds dynamic structure: N explain steps + 1 complete step
+- Tracks `stepIndex`, `currentCheckpoint`, `subPhase` (idle / ai-responding / waiting-response / quiz-answering / quiz-result / complete)
+- No global quiz step — each island has its own mini-quiz managed locally in the learn page
+- Phase badge shows current island title (or "Befejezés" on complete)
+- `resumeFrom(checkpoint)` restores session to the correct island step
+- `totalCheckpoints = islandTitles.length`
 
 #### 4c — ProgressRoadmap wiring ✅
-- 7 islands: 3 exercises, 3 teaching, 1 quiz
+- N islands = AI-generated sections (titles shown below circles, truncated)
 - Completed (accent fill + checkmark) / current (avatar + pulsing ring) / locked (muted + lock icon)
-- Left/right arrow pan, phase-tinted backgrounds (violet/blue/amber), "Kezdés"/"Folytatás" button
-- Reads real `currentCheckpoint` from latest in-progress session
+- Left/right arrow pan, no phase tints (all islands uniform), "Kezdés"/"Folytatás" button is a `<Link>` to the learn page
+- Reads real `currentCheckpoint` + island titles from latest in-progress session's `__ISLANDS__:` message
+- Topic detail page dynamically computes `totalCheckpoints = islandTitles.length`
 
 #### 4d — Session lifecycle ✅
 - `POST /api/sessions` — create session linked to topic
@@ -96,7 +92,15 @@ This is the core of Cognimo — an interactive lesson player, not a chat app. Th
 - Study materials injected as system prompt with explicit "use as primary source" directive
 - PDF text extraction on upload via `pdf-parse` (stored in `content` column)
 - AI provider fallback: if Groq fails/times out, retry with OpenAI SDK (GPT-4o)
-- Initial user message tells Lumi the topic name + phase on session start
+- Per-island phase instruction passed via `phaseInstruction` field — includes approach guide + key_concepts for teaching, probe_questions for Inverted Teacher
+- Teaching instruction explicitly scoped: "Csak a(z) 'Island Title' részhez tartozó kulcsfogalmakat fedd le. NE említs más részeket vagy későbbi témákat. Ne tegyél fel kérdéseket — csak magyarázz."
+- `islandStep` ("teach" | "probe" | "mini-quiz") tracked client-side to select the correct instruction for each AI call
+
+#### 4f — Mini-quiz scoped generation ✅
+- `/api/quiz/generate` accepts optional `keyConcepts: string[]`, `questionCount: number` (default 4, max 10), `islandTitle: string`
+- When `keyConcepts` provided, generates 6 MCQ scoped to that island's concepts only
+- Used by learn page: each island gets its own mini-quiz on completion of teaching + probe
+- No global quiz phase — quizzes are per-island, auto-generated on-the-fly
 
 ### Task 5 — User Avatar Selection ✅ (replaces Task 5 — Persona Selection)
 - Male/female avatar SVGs in `public/avatars/`

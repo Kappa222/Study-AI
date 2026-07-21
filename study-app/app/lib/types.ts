@@ -75,6 +75,13 @@ export interface ChatMessage {
   created_at: string;
 }
 
+export interface Island {
+  title: string;
+  approach: "scenario" | "socratic" | "conversational";
+  key_concepts: string[];
+  probe_questions: string[];
+}
+
 export interface CompletionStats {
   score: number;
   totalQuestions: number;

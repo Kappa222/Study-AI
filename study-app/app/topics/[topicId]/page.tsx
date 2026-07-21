@@ -6,12 +6,7 @@ import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
 import ProgressRoadmap from "../../components/ProgressRoadmap";
 
-const ROADMAP_PHASES = [
-  { startIndex: 0, count: 3, label: "Gyakorlatok" },
-  { startIndex: 3, count: 3, label: "Tanítás" },
-  { startIndex: 6, count: 1, label: "Kvíz" },
-];
-const TOTAL_CHECKPOINTS = 7;
+const FALLBACK_TOTAL_CHECKPOINTS = 7;
 
 interface Topic {
   id: string;
@@ -46,6 +41,7 @@ export default function TopicDetailPage() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState("");
+  const [islandTitles, setIslandTitles] = useState<string[] | undefined>(undefined);
 
   const loadData = useCallback(async (userId?: string) => {
     const { data: t, error: topicErr } = await supabase
@@ -79,13 +75,31 @@ export default function TopicDetailPage() {
 
     const { data: latestSession } = await supabase
       .from("chat_sessions")
-      .select("current_checkpoint")
+      .select("id, current_checkpoint")
       .eq("topic_id", topicId)
       .eq("status", "in_progress")
       .order("updated_at", { ascending: false })
       .limit(1)
       .single();
-    if (latestSession) setCurrentCheckpoint(latestSession.current_checkpoint);
+
+    if (latestSession) {
+      setCurrentCheckpoint(latestSession.current_checkpoint);
+
+      const msgRes = await fetch(`/api/sessions/${latestSession.id}`);
+      if (msgRes.ok) {
+        const { messages } = await msgRes.json();
+        const islandMsg = messages.find(
+          (m: { role: string; content: string }) =>
+            m.role === "assistant" && m.content.startsWith("__ISLANDS__:"),
+        );
+        if (islandMsg) {
+          try {
+            const islands: { title: string }[] = JSON.parse(islandMsg.content.slice(11));
+            setIslandTitles(islands.map((i) => i.title));
+          } catch { /* ignore */ }
+        }
+      }
+    }
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -110,6 +124,8 @@ export default function TopicDetailPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     initPage();
   }, [initPage]);
+
+  const totalCheckpoints = islandTitles ? islandTitles.length : FALLBACK_TOTAL_CHECKPOINTS;
 
   if (pageLoading) {
     return (
@@ -164,9 +180,10 @@ export default function TopicDetailPage() {
           <ProgressRoadmap
             topicName={topic.name}
             currentCheckpoint={currentCheckpoint}
-            totalCheckpoints={TOTAL_CHECKPOINTS}
-            phases={ROADMAP_PHASES}
+            totalCheckpoints={totalCheckpoints}
             avatarUrl={avatarUrl}
+            topicId={topicId}
+            islandTitles={islandTitles}
           />
         </div>
       )}
@@ -217,18 +234,37 @@ export default function TopicDetailPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
-                <p className="mb-1 text-zinc-500">Készen állsz tanulni?</p>
-                <p className="mb-4 text-xs text-zinc-400">
-                  A tanulás három fázisból áll: gyakorlatok → tanítás → kvíz.
-                </p>
-                <Link
-                  href={`/topics/${topicId}/learn`}
-                  className="inline-block cursor-pointer rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
-                >
-                  📚 Indíts tanulást
-                </Link>
-              </div>
+              {currentCheckpoint === 0 && (
+                <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
+                  <p className="mb-1 text-zinc-500">Készen állsz tanulni?</p>
+                  <p className="mb-4 text-xs text-zinc-400">
+                    Lumi elemzi a tananyagot, és egyedi tanulási tervet készít.
+                  </p>
+                  <Link
+                    href={`/topics/${topicId}/learn`}
+                    className="inline-block cursor-pointer rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-md active:scale-[0.98]"
+                  >
+                    📚 Indíts tanulást
+                  </Link>
+                </div>
+              )}
+
+              {currentCheckpoint > 0 && currentCheckpoint < totalCheckpoints && islandTitles && (
+                <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
+                  <p className="text-sm text-zinc-500">
+                    <span className="font-medium text-accent">Folytatás</span> — következő rész:
+                  </p>
+                  <p className="mt-1 text-base font-semibold">
+                    {islandTitles[currentCheckpoint]}
+                  </p>
+                </div>
+              )}
+
+              {currentCheckpoint === totalCheckpoints && (
+                <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
+                  <p className="text-sm text-zinc-500">Minden részt teljesítettél! 🎉</p>
+                </div>
+              )}
             </>
           ) : (
             <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-700">
